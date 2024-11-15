@@ -1,0 +1,4 @@
+Flask
+jsonpickle
+logging
+requests
