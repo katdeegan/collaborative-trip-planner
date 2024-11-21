@@ -8,18 +8,13 @@ app = Flask(__name__)
 
 app.logger.setLevel(logging.DEBUG)
 
-@app.route('/apiv1/user/<int:id>', methods=['GET'])
-def getUserById(id):
-    app.logger.info(f"Retrieving user with ID: {id}")
 
-    # UPDATE
-    response = {'username' : 'pretend username'}
-    response_pickled = jsonpickle.encode(response)
-    return Response(response=response_pickled, status=200, mimetype="application/json")
+@app.route('/apiv1/user/<string:username>', methods=['GET'])
+def getUserByUsername(username):
+    # retrieves User record from users DB
+    # returns JSON response containing user_id, username, email, password
+    app.logger.info(f"Retrieving user for username: {username}")
 
-@app.route('/apiv1/userId/<string:username>', methods=['GET'])
-def getUserIdByUsername(username):
-    app.logger.info(f"Retrieving ID for user: {username}")
 
     # UPDATE
     response = {'userId' : 1}
@@ -28,6 +23,10 @@ def getUserIdByUsername(username):
 
 @app.route('/apiv1/user', methods=['POST'])
 def createUser():
+    # creates new User record in users DB
+    # request body should be JSON including username, email, password
+    # returns JSON response containing user_id, username, email, password
+
     app.logger.info(f"Creating new user...")
 
     # UPDATE
@@ -35,13 +34,29 @@ def createUser():
     response_pickled = jsonpickle.encode(response)
     return Response(response=response_pickled, status=200, mimetype="application/json")
 
-@app.route('/apiv1/group', methods=['POST'])
-def createUserGroup():
-    app.logger.info(f"Creating new group...")
-    # user id in request body, associate this user with group
+
+@app.route('/apiv1/tripGroup', methods=['POST'])
+def addUserToTripGroup():
+    # creates new record in trip_members DB to associate user with trip group
+    # request body should be JSON including trip_id, user_id
+    # returns response status 200 when successful
+    app.logger.info(f"Adding user to trip group...")
+
 
     # UPDATE
     response = {'USER ADDED TO' : 'pretend group'}
+    response_pickled = jsonpickle.encode(response)
+    return Response(response=response_pickled, status=200, mimetype="application/json")
+
+@app.route('/apiv1/tripGroup/<int:userId>', methods=['GET'])
+def getTripsForUser(userId):
+    # retrieves records from trip_members DB where user_id == userId
+    # returns JSON response with all match records, including fields user_id and trip_id
+    app.logger.info(f"Retrieving groups for user {userId}...")
+
+
+    # UPDATE
+    response = [{'user_id' : 1, 'trip_id': 1},{'user_id' : 1, 'trip_id': 3}]
     response_pickled = jsonpickle.encode(response)
     return Response(response=response_pickled, status=200, mimetype="application/json")
 
