@@ -43,7 +43,7 @@ class Home extends Component {
                 <Link to='/createtrip'>
                 <button style={{ alignItems: 'center', padding: '10px 20px', borderRadius: '5px' }}>
                 <FontAwesomeIcon icon={faPlus} style={{ marginRight: '8px' }} />
-                New Trip Group
+                New Trip
                 </button>
                 </Link>
             </div>

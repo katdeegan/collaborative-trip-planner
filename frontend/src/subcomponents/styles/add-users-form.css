@@ -1,0 +1,43 @@
+/* Add this to your CSS file */
+.add-users-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+  
+  .users-select {
+    width: 100%;            /* Make it take up full width of its container */
+    padding: 10px;          /* Add padding inside the select box */
+    font-size: 16px;        /* Make the text inside the select box larger */
+    border-radius: 4px;     /* Optional: rounded corners for the select box */
+    border: 1px solid #ccc; /* Add a light border */
+    background-color: #fff; /* Optional: background color */
+    appearance: none;       /* Remove default dropdown arrow styling in some browsers */
+  }
+  
+  /* Optionally, style the options for a better appearance */
+  select option {
+    padding: 10px;   /* Add padding for the options */
+    font-size: 16px;  /* Larger text inside options */
+    color: black;
+  }
+  
+  button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #45a049;
+  }
+  

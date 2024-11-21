@@ -18,18 +18,11 @@ def returnResp(response):
         return response.text
 
 
-def testGetUser(id):
-    get_user_url = addr + f"/apiv1/user/{id}"
+def testGetUser(username):
+    get_user_url = addr + f"/apiv1/user/{username}"
     headers = {'content-type': 'application/json'}
 
     response = requests.get(get_user_url, headers=headers)
-    returnResp(response)
-
-def testGetUserId(username):
-    get_user_id_url = addr + f"/apiv1/userId/{username}"
-    headers = {'content-type': 'application/json'}
-
-    response = requests.get(get_user_id_url, headers=headers)
     returnResp(response)
 
 def testCreateUser():
@@ -43,8 +36,8 @@ def testCreateUser():
     response = requests.post(create_user_url, data=data, headers=headers)
     returnResp(response)
 
-def testCreateGroup():
-    create_group_url = addr + f"/apiv1/group"
+def testAddUserToGroup():
+    create_group_url = addr + f"/apiv1/tripGroup"
     headers = {'content-type': 'application/json'}
 
     data = jsonpickle.encode({ "group" : "New User",
@@ -52,10 +45,16 @@ def testCreateGroup():
 
     response = requests.post(create_group_url, data=data, headers=headers)
     returnResp(response)
+def testGetTripsForUser(userId):
+    get_user_trips_url = addr + f"/apiv1/tripGroup/{userId}"
+    headers = {'content-type': 'application/json'}
+
+    response = requests.get(get_user_trips_url, headers=headers)
+    returnResp(response)
 
 if len(sys.argv) < 2:
     print(f"Usage: {sys.argv[0]} <cmd>")
-    print(f"    where <cmd> is one of: getUser, getUserId, createUser, createGroup")
+    print(f"    where <cmd> is one of: getUser, createUser, addToGroup, getGroups")
 
 else:
 
@@ -63,20 +62,20 @@ else:
 
     if cmd == 'getUser':
         if (len(sys.argv) < 3):
-            print(f"Usage: {sys.argv[0]} getUser <id>")
-        else:
-            print(f"Retrieving user with id {sys.argv[2]}...")
-            testGetUser(sys.argv[2])
-    elif cmd == 'getUserId':
-        if (len(sys.argv) < 3):
             print(f"Usage: {sys.argv[0]} getUser <username>")
         else:
-            print(f"Retrieving user ID for {sys.argv[2]}...")
-            testGetUserId(sys.argv[2])
+            print(f"Retrieving user information for user '{sys.argv[2]}'...")
+            testGetUser(sys.argv[2])
     elif cmd == 'createUser':
         testCreateUser()
-    elif cmd == 'createGroup':
-        testCreateGroup()
+    elif cmd == 'addToGroup':
+        testAddUserToGroup()
+    elif cmd == 'getGroups':
+        if (len(sys.argv) < 3):
+            print(f"Usage: {sys.argv[0]} getGroups <userId>")
+        else:
+            print(f"Retrieving user information for user '{sys.argv[2]}'...")
+            testGetTripsForUser(sys.argv[2])
 
     else:
         print("Unknown option", cmd)

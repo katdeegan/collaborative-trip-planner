@@ -24,14 +24,13 @@ def testCreateTrip():
 
     data = jsonpickle.encode({ "trip_name" : "My trip",
                               "start_date" : "05-05-2025",
-                              "end_date" : "05-15-2025",
-                              "location" : "France"})
+                              "end_date" : "05-15-2025"})
 
     response = requests.post(create_trip_url, data=data, headers=headers)
     returnResp(response)
 
-def testUpdateTrip(id):
-    update_trip_url = addr + f"/apiv1/trip/{id}"
+def testUpdateTrip(id, date):
+    update_trip_url = addr + f"/apiv1/trip/{id}/{date}"
     headers = {'content-type': 'application/json'}
 
     data = jsonpickle.encode({"location" : "Spain"})
@@ -39,11 +38,18 @@ def testUpdateTrip(id):
     response = requests.patch(update_trip_url, data=data, headers=headers)
     returnResp(response)
 
-def testGetTripId(group): 
-    get_trip_id_url = addr + f"/apiv1/tripId/{group}"
+def testGetTrip(tripName): 
+    get_trip_id_url = addr + f"/apiv1/trip/{tripName}"
     headers = {'content-type': 'application/json'}
 
     response = requests.get(get_trip_id_url, headers=headers)
+    returnResp(response)
+
+def testGetTripDays(tripId): 
+    get_trip_days_id_url = addr + f"/apiv1/tripDays/{tripId}"
+    headers = {'content-type': 'application/json'}
+
+    response = requests.get(get_trip_days_id_url, headers=headers)
     returnResp(response)
 
 def testAddDoc(id):
@@ -58,7 +64,7 @@ def testAddDoc(id):
 
 if len(sys.argv) < 2:
     print(f"Usage: {sys.argv[0]} <cmd>")
-    print(f"    where <cmd> is one of: createTrip, updateTrip, getTripId, addDoc")
+    print(f"    where <cmd> is one of: createTrip, updateTrip, getTrip, getTripDays, addDoc")
 
 else:
 
@@ -67,17 +73,23 @@ else:
     if cmd == 'createTrip':
         testCreateTrip()
     elif cmd == 'updateTrip':
-        if (len(sys.argv) < 3):
-            print(f"Usage: {sys.argv[0]} updateTrip <trip-id>")
+        if (len(sys.argv) < 4):
+            print(f"Usage: {sys.argv[0]} updateTrip <trip-id> <date>")
         else:
-            print(f"Updating trip with id {sys.argv[2]}...")
-            testUpdateTrip(sys.argv[2])
-    elif cmd == 'getTripId':
+            print(f"Updating trip with id {sys.argv[2]} for day {sys.argv[3]}...")
+            testUpdateTrip(sys.argv[2], sys.argv[3])
+    elif cmd == 'getTrip':
         if (len(sys.argv) < 3):
-            print(f"Usage: {sys.argv[0]} getTripId <trip-name>")
+            print(f"Usage: {sys.argv[0]} getTrip <trip-name>")
         else:
-            print(f"Retrieving trip ID for trip '{sys.argv[2]}'...")
-            testGetTripId(sys.argv[2])
+            print(f"Retrieving trip overview information for trip '{sys.argv[2]}'...")
+            testGetTrip(sys.argv[2])
+    elif cmd == 'getTripDays':
+        if (len(sys.argv) < 3):
+            print(f"Usage: {sys.argv[0]} getTrip <trip-id>")
+        else:
+            print(f"Retrieving trip day information for trip {sys.argv[2]}...")
+            testGetTripDays(sys.argv[2])
     elif cmd == 'addDoc':
         if (len(sys.argv) < 3):
             print(f"Usage: {sys.argv[0]} addDoc <trip-id>")
