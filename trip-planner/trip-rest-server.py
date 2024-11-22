@@ -7,6 +7,7 @@ from google.cloud.sql.connector import Connector
 import pg8000
 import sqlalchemy
 from sqlalchemy import text
+from datetime import date
 
 app = Flask(__name__)
 
@@ -73,23 +74,27 @@ def getTrip(tripName):
 
     with pool.connect() as db_conn:
         # retrieve trip overview 
-        trip_overview_data = db_conn.execute(query, {"tripname":tripName}).fetchall()
+        trip_overview_data = db_conn.execute(query, {"tripname":tripName})
+
+        # converts response to json
+        trip_resp = [dict(zip(trip_overview_data.keys(), row)) for row in trip_overview_data.fetchall()]
 
         # if no tripName is found
-        if not trip_overview_data:
+        if not trip_resp:
             error_resp = {'error': 'Trip not found', 'message': 'No trip data found for the given trip name.'}
             return Response(response=jsonpickle.encode(error_resp), status=404, mimetype="application/json")
 
-        trip = trip_overview_data[0]
-        
-        # formulate json response
-        json_resp = {'trip_id' : trip[0], 'trip_name' : str(trip[1]), 'start_date' : str(trip[2]), 'end_date' : str(trip[3]) }
+        for row in trip_resp:
+            for key, val in row.items():
+                # convert date values to string in json response
+                if isinstance(val, date):
+                    row[key] = val.strftime('%Y-%m-%d')
 
         db_conn.commit()
 
 
-    response_pickled = jsonpickle.encode(json_resp)
-    return Response(response=response_pickled, status=200, mimetype="application/json")
+        response_pickled = jsonpickle.encode(trip_resp[0])
+        return Response(response=response_pickled, status=200, mimetype="application/json")
 
 @app.route('/apiv1/tripDays/<int:tripId>', methods=['GET'])
 def getTripDayDetails(tripId):
