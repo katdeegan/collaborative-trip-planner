@@ -2,3 +2,5 @@ Flask
 jsonpickle
 logging
 requests
+psycopg2-binary
+"cloud-sql-python-connector[pg8000]"
