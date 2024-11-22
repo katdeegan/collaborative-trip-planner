@@ -18,13 +18,14 @@ def returnResp(response):
         return response.text
 
 
-def testCreateTrip():
+def testCreateTrip(tripName, startDate, endDate):
+    # startDate and endDate in formate MM-DD-YYYY
     create_trip_url = addr + f"/apiv1/trip"
     headers = {'content-type': 'application/json'}
 
-    data = jsonpickle.encode({ "trip_name" : "My trip",
-                              "start_date" : "05-05-2025",
-                              "end_date" : "05-15-2025"})
+    data = jsonpickle.encode({ "trip_name" : tripName,
+                              "start_date" : startDate,
+                              "end_date" : endDate})
 
     response = requests.post(create_trip_url, data=data, headers=headers)
     returnResp(response)
@@ -71,7 +72,11 @@ else:
     cmd = sys.argv[1]
 
     if cmd == 'createTrip':
-        testCreateTrip()
+        if (len(sys.argv) < 5):
+            print(f"Usage: {sys.argv[0]} updateTrip <trip-name> <start-date> <end-date>")
+        else:
+            print(f"Creating trip '{sys.argv[2]}'...")
+            testCreateTrip(sys.argv[2], sys.argv[3], sys.argv[4])
     elif cmd == 'updateTrip':
         if (len(sys.argv) < 4):
             print(f"Usage: {sys.argv[0]} updateTrip <trip-id> <date>")

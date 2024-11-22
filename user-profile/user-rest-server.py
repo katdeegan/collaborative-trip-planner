@@ -48,15 +48,14 @@ def getUserByUsername(username):
 
     with pool.connect() as db_conn:
         user = db_conn.execute(query, {"username":username})
+        json_resp = [dict(zip(user.keys(), row)) for row in user.fetchall()]
 
-        if not user:
+        if not json_resp:
             error_resp = {'error': 'user not found', 'message': 'No user data found for the given username.'}
             return Response(response=jsonpickle.encode(error_resp), status=404, mimetype="application/json")
-
-        json_resp = [dict(zip(user.keys(), row)) for row in user.fetchall()]
         
-    response_pickled = jsonpickle.encode(json_resp)
-    return Response(response=response_pickled, status=200, mimetype="application/json")
+        response_pickled = jsonpickle.encode(json_resp)
+        return Response(response=response_pickled, status=200, mimetype="application/json")
 
 @app.route('/apiv1/user', methods=['POST'])
 def createUser():
