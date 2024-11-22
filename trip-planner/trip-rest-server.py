@@ -7,7 +7,6 @@ from google.cloud.sql.connector import Connector
 import pg8000
 import sqlalchemy
 from sqlalchemy import text
-import json
 
 app = Flask(__name__)
 
@@ -81,8 +80,8 @@ def getTrip(tripName):
             error_resp = {'error': 'Trip not found', 'message': 'No trip data found for the given trip name.'}
             return Response(response=jsonpickle.encode(error_resp), status=404, mimetype="application/json")
 
-        trip = trip_overview_data[0
-                                  ]
+        trip = trip_overview_data[0]
+        
         # formulate json response
         json_resp = {'trip_id' : trip[0], 'trip_name' : str(trip[1]), 'start_date' : str(trip[2]), 'end_date' : str(trip[3]) }
 
