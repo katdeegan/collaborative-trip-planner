@@ -26,6 +26,7 @@ def testCreateTrip(tripName, startDate, endDate):
     data = jsonpickle.encode({ "trip_name" : tripName,
                               "start_date" : startDate,
                               "end_date" : endDate})
+    
 
     response = requests.post(create_trip_url, data=data, headers=headers)
     returnResp(response)
