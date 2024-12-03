@@ -106,6 +106,8 @@ def createUser():
     # request body should be JSON including username, email, password
     # returns JSON response containing user_id, username, email, password
 
+    # TO-DO - return specific error message (and handle in frontend) when username or email is already used
+
     app.logger.info(f"Creating new user...")
 
     try:
@@ -176,7 +178,7 @@ def getTripsForUser(userId):
     # retrieves records from trip_members DB where user_id == userId
     # returns JSON string which is a list of trip_ids
     app.logger.info(f"Retrieving groups for user {userId}...")
-    
+
     try:
 
         query = sqlalchemy.text('SELECT trip_id FROM "trip_members" WHERE user_id = :userId')

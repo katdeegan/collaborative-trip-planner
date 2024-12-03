@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import '../styles/form-styles.css'; 
 
-function CreateAccount() {
+function CreateAccount({onUserChange}) {
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -10,6 +12,11 @@ function CreateAccount() {
       });
       const [errors, setErrors] = useState({});
       const [isSubmitting, setIsSubmitting] = useState(false);
+
+      const [response, setResponse] = useState(null);
+      const [error, setError] = useState(null); // errors for POST request
+
+      const navigate = useNavigate(); 
     
       // Handle form input changes
       const handleChange = (e) => {
@@ -33,20 +40,39 @@ function CreateAccount() {
         };
     
       // Handle form submission
-    const handleSubmit = (e) => {
+    const handleSubmit = async(e) => {
         e.preventDefault();
         const formErrors = validate();
         if (Object.keys(formErrors).length === 0) {
-        setIsSubmitting(true);
-        console.log('Form Data:', formData);
-        // Simulate API call
-        setTimeout(() => {
-            setIsSubmitting(false);
-            // Here you would typically redirect the user or show a success message
-            alert('Account created successfully!');
-        }, 2000);
+          setIsSubmitting(true);
+          console.log('Create Account Data:', formData);
+
+          const createUserUrl = 'http://127.0.0.1:4000/apiv1/user';
+
+          const newUserData = {
+            username: formData.username,
+            email: formData.email,
+            password: formData.password,
+          };
+
+          const config = {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          };
+
+          try {
+            const response = await axios.post(createUserUrl, newUserData, config)
+            setResponse(response.data)
+            console.log('New user created.');
+            onUserChange(response.data[0].user_id, response.data[0].username);
+            navigate('/'); 
+          } catch (err) {
+            setError(err.message)
+          }
+
         } else {
-        setErrors(formErrors);
+          setErrors(formErrors);
         }
     };
 
@@ -83,7 +109,7 @@ function CreateAccount() {
           />
           {errors.email && <p className="error">{errors.email}</p>}
         </div>
-        <div class='inputGroup'>
+        <div className='inputGroup'>
           <label htmlFor="password">Password:</label>
           <input
             type="password"

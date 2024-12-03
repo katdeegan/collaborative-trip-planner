@@ -34,11 +34,11 @@ function App() {
       <Routes>
         <Route 
           path='/'
-          element={user ? <Home username={username} userId={user}/> : <Navigate to="/login" />}
+          element={user ? <Home username={username} userId={user} onUserChange = {onUserChange}/> : <Navigate to="/login" />}
         />
         <Route path='/trip/:id' element={<TripDetail />} />
         <Route path='/login' element={<LogIn onUserChange = {onUserChange} />} />
-        <Route path='/createaccount' element={<CreateAccount />} />
+        <Route path='/createaccount' element={<CreateAccount onUserChange = {onUserChange} />} />
         <Route path='/createtrip' element={<CreateTrip />} />
         <Route path='/editTripDay/:dayNum/:tripId/:date' element={<EditTripDay />} />
         <Route path='/editTripMembers/:tripId' element={<EditTripMembers />} />
