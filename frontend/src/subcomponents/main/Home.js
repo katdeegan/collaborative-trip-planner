@@ -7,20 +7,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import Title from './Title';
+import '../styles/form-styles.css'; 
 
-class Home extends Component {
-    // TO-DO - check if uses is logged in
-    constructor(props) {
-        super(props);
-        // Initialize state
-        this.state = {
-            isAuthenticated: true
-          //isAuthenticated: localStorage.getItem('authToken') ? true : false, // Check if the user is logged in
-        };
-      }
-    
-      // Handle log out
-      handleLogOut = () => {
+function Home({username, userId}) {
+  const handleLogOut = () => {
         console.log('Loggin user out...');
         // log user out
         /*
@@ -29,12 +19,12 @@ class Home extends Component {
         */
       };
 
-    render() {
-        return (
+  return (
             <>
-            <div>
+            <div className='two-item-grid-container'>
+              <h4>Welcome, {username}!</h4>
                 <Link to='/login'>
-                <button onClick={this.handleLogOut}>Log Out</button>
+                <button onClick={handleLogOut}>Log Out</button>
                 </Link>
             </div>
             <Title/>
@@ -48,8 +38,8 @@ class Home extends Component {
                 </Link>
             </div>
             </>
-        )
-    }
+        );
+    
 }
 
 

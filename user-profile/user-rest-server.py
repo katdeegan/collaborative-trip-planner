@@ -7,10 +7,16 @@ from google.cloud.sql.connector import Connector
 import pg8000
 import sqlalchemy
 from sqlalchemy import text
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_cors import CORS # for local testing - allow cross-origin requests (when frontend and backend are running on same machine on different ports)
 
 app = Flask(__name__)
 
 app.logger.setLevel(logging.DEBUG)
+
+CORS(app) 
+
 
 # initialize Connector object
 connector = Connector()
@@ -37,6 +43,42 @@ with pool.connect() as conn:
     result = conn.execute(text("SELECT 1"))
     print(result.fetchone())
 
+def validateUserPassword(userId, userEnteredPassword):
+    app.logger.info(f"Validating password for User {userId}...")
+    query = sqlalchemy.text('SELECT password FROM "users" WHERE user_id = :userId')
+
+    with pool.connect() as db_conn:
+        user = db_conn.execute(query, {"userId":userId})
+        if user is None:
+                app.logger.warning(f"No user found with user_id: {userId}")
+                return False
+        
+        json_resp = [dict(zip(user.keys(), row)) for row in user.fetchall()][0]
+
+        user_password = json_resp['password']
+
+        if userEnteredPassword == user_password:
+            return True
+        else:
+            return False
+        
+def getUserByEmail(email):
+    # retrieves User record from users DB by email
+    # returns JSON response containing user_id, username, email, password
+    app.logger.info(f"Retrieving user for email: {email}")
+
+    query = sqlalchemy.text('SELECT * FROM "users" WHERE email = :email')
+
+    with pool.connect() as db_conn:
+        user = db_conn.execute(query, {"email":email})
+        json_resp = [dict(zip(user.keys(), row)) for row in user.fetchall()][0]
+
+        if not json_resp:
+            error_resp = {'error': 'user not found', 'message': 'No user data found for the given email.'}
+            return Response(response=jsonpickle.encode(error_resp), status=404, mimetype="application/json")
+        
+        response_pickled = jsonpickle.encode(json_resp)
+        return Response(response=response_pickled, status=200, mimetype="application/json")
 
 @app.route('/apiv1/user/<string:username>', methods=['GET'])
 def getUserByUsername(username):
@@ -48,7 +90,7 @@ def getUserByUsername(username):
 
     with pool.connect() as db_conn:
         user = db_conn.execute(query, {"username":username})
-        json_resp = [dict(zip(user.keys(), row)) for row in user.fetchall()]
+        json_resp = [dict(zip(user.keys(), row)) for row in user.fetchall()][0]
 
         if not json_resp:
             error_resp = {'error': 'user not found', 'message': 'No user data found for the given username.'}
@@ -134,26 +176,78 @@ def getTripsForUser(userId):
     # returns JSON string which is a list of trip_ids
     app.logger.info(f"Retrieving groups for user {userId}...")
 
-    query = sqlalchemy.text('SELECT trip_id FROM "trip_members" WHERE user_id = :userId')
+    try:
 
-    with pool.connect() as db_conn:
+        query = sqlalchemy.text('SELECT trip_id FROM "trip_members" WHERE user_id = :userId')
 
-        user_trip_data = db_conn.execute(query, {"userId":userId}).fetchall()
+        with pool.connect() as db_conn:
 
-        # if user has no trips associated with them, return empty response
-        if not user_trip_data:
-            no_trips_resp = jsonpickle.encode([])
-            return Response(response=no_trips_resp, status=200, mimetype="application/json")
+            user_trip_data = db_conn.execute(query, {"userId":userId}).fetchall()
+
+            # if user has no trips associated with them, return empty response
+            if not user_trip_data:
+                no_trips_resp = jsonpickle.encode([])
+                return Response(response=no_trips_resp, status=200, mimetype="application/json")
+            
+            user_trips = []
+            
+            for trip in user_trip_data:
+                user_trips.append(trip[0])
+            
+            app.logger.info(f"Trips for User {userId}: {user_trips}")
+
+            formatted_trip_ids = ', '.join(map(str, user_trips))
+            trip_overview_query = f"SELECT trip_id, trip_name FROM trip_overview WHERE trip_id IN ({formatted_trip_ids})"
+
+            user_trip_overview_data = db_conn.execute(sqlalchemy.text(trip_overview_query))
+
+            app.logger.info(user_trip_overview_data)
+
+
+            trip_resp = [dict(zip(user_trip_overview_data.keys(), row)) for row in user_trip_overview_data.fetchall()]
+
+            return Response(response=jsonpickle.encode(trip_resp),status=200, mimetype="application/json")
+
+    except Exception as e:
+        error_resp = {'error': str(e)}
+        return Response(response=jsonpickle.encode(error_resp), status=500, mimetype="application/json")
+    
+
+@app.route('/apiv1/login', methods=['POST'])
+def loginUser():
+    data = request.get_json()
+    user = data.get("email_or_username")
+    password = data.get("password")
+    app.logger.info(f"Attempting to login {user}...")
+
+    if not user or not password:
+        error_resp = {"error" : "Missing email/username or password"}
+        return Response(response=jsonpickle.encode(error_resp),status=400, mimetype="application/json")
         
-        user_trips = []
-        
-        for trip in user_trip_data:
-            user_trips.append(trip[0])
-
-        json_resp = jsonpickle.encode(user_trips)
-
-        return Response(response=json_resp, status=200, mimetype="application/json")
+    if '@' in user:
+        # user attempting to login with email
+        userRecord = getUserByEmail(user)
+        app.logger.info(f"Successfully logged in user: {userRecord.get_json()}")
+    else:
+        # user attempting to login with username
+        userRecord = getUserByUsername(user)
+        app.logger.info(f"Successfully logged in user: {userRecord.get_json()}")
+    
+    if not userRecord:
+        return Response(response=jsonpickle.encode({"error" : "Invalid username/email"}),status=401, mimetype="application/json")
+    
+    # validate password
+    user_id = userRecord.get_json().get("user_id")
+    username = userRecord.get_json().get("username")
+    if validateUserPassword(user_id, password):
+        app.logger.info(f"Login successful for User {user_id}!")
+        #access_token = create_access_token(identity=user_id)
+        json_resp = {"msg":"Login successful", "user_id":user_id, "username":username}
+        return Response(response=jsonpickle.encode(json_resp), status=200, mimetype="application/json")
+    else:
+        return Response(response=jsonpickle.encode({"error" : "Invalid password"}),status=401, mimetype="application/json")
+            
 
 
 # start flask app
-app.run(host="0.0.0.0", port=4000)
+app.run(host="0.0.0.0", port=4000, debug=True)

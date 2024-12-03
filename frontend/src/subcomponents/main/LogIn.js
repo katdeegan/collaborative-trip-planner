@@ -1,33 +1,55 @@
 import React, { useState } from 'react';
 import '../styles/form-styles.css'; 
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-function Login() {
+function Login({onUserChange}) {
+  const loginUrl = 'http://127.0.0.1:4000/apiv1/login'
+
   const [username, setUsername] = useState(''); // State for username/email
   const [password, setPassword] = useState(''); // State for password
   const [error, setError] = useState(''); // State for form validation errors
+
+  const navigate = useNavigate(); 
 
   // Handle input changes
   const handleUsernameChange = (e) => setUsername(e.target.value);
   const handlePasswordChange = (e) => setPassword(e.target.value);
 
-  // Handle form submission
+  const login = async (user, password) => {
+    axios.post(loginUrl, {
+      email_or_username: user,
+      password: password,
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(response => {
+        console.log(response.data);
+        onUserChange(response.data.user_id, response.data.username);
+        navigate('/');
+
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        setError('Invalid username or password'); 
+      });
+
+
+    
+  };
+  
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Basic validation
     if (!username || !password) {
       setError('Please fill in both fields');
       return;
     }
 
-    // TESTING - Simulate login (you'd make an API call here to validate the credentials)
-    if (username === 'user' && password === 'password123') {
-      setError('');
-      alert('Login Successful!');
-      // Redirect user or handle successful login here
-    } else {
-      setError('Invalid username or password');
-    }
+    login(username, password)
   };
 
   return (
@@ -45,7 +67,7 @@ function Login() {
             placeholder="Enter your username or email"
           />
         </div>
-        <div class='inputGroup'>
+        <div className='inputGroup'>
           <label htmlFor="password">Password:</label>
           <input
             type="password"

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/form-styles.css'; 
 
-const Modal = ({ isOpen, onClose, startDate, endDate, onSave }) => {
+const ChangeTripDatesModal = ({ isOpen, onClose, startDate, endDate, onSave }) => {
   const [newStartDate, setNewStartDate] = useState(startDate);
   const [newEndDate, setNewEndDate] = useState(endDate);
 
@@ -46,4 +46,4 @@ const Modal = ({ isOpen, onClose, startDate, endDate, onSave }) => {
   );
 };
 
-export default Modal;
+export default ChangeTripDatesModal;

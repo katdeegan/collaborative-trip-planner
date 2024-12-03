@@ -120,5 +120,6 @@ def addDocument(tripId):
     response_pickled = jsonpickle.encode(response)
     return Response(response=response_pickled, status=200, mimetype="application/json")
 
+
 # start flask app
 app.run(host="0.0.0.0", port=4000)

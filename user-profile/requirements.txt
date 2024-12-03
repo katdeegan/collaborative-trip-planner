@@ -2,3 +2,4 @@ Flask
 jsonpickle
 logging
 requests
+Flask-JWT-Extended

@@ -1,0 +1,7 @@
+  /* Grid container */
+  .two-item-grid-container {
+    display: flex;
+    justify-content: space-between; /* Distribute space between the components */
+    gap: 20px; /* Optional: Adds space between components */ 
+    padding: 10px;                 /* Adds space between the grid items */
+  }
