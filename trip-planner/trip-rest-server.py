@@ -9,6 +9,7 @@ import sqlalchemy
 from sqlalchemy import text
 from datetime import date, datetime
 import datetime
+from google.cloud import storage
 
 app = Flask(__name__)
 
@@ -16,6 +17,10 @@ app.logger.setLevel(logging.DEBUG)
 
 # initialize Connector object
 connector = Connector()
+
+# Initialize GCS client for doc storage
+storage_client = storage.Client()
+bucket_name = "trip-planner-docs"  
 
 # function to return the database connection
 def getconn():
@@ -135,7 +140,7 @@ def updateTrip(tripId, dateString):
         formatted_date = trip_date.strftime("%Y-%m-%dT%H:%M:%SZ")
         app.logger.info(formatted_date)
 
-        # TODO - how to get from 2001-01-02 form to 2000-01-01T00:00:00Z form as in table
+        # TODO - check that date and trip are valid (exist and in range)
 
         # Build the SQL update query dynamically
         fields_to_update = []
@@ -271,10 +276,35 @@ def addDocument(tripId):
     app.logger.info(f"Adding trip document associated with trip {tripId} to object store...")
     # user id in request body, associate this user with group
 
-    # UPDATE TODO
-    response = {'Doc added' : 'successfully'}
-    response_pickled = jsonpickle.encode(response)
-    return Response(response=response_pickled, status=200, mimetype="application/json")
+# TODO
+    try:
+        app.logger.info(f"getting file...")
+        # Get the file from the request
+        file = request.files['file']  # Assume file is sent as form-data in the 'file' field
+        app.logger.info(f" file gotten...")
+        if not file:
+            return jsonify({"error": "No file provided"}), 400
+
+        # Get the file content and prepare the blob name (could be based on tripId or file name)
+        blob_name = f"trip_documents/{tripId}/{file.filename}"
+        app.logger.info(f"Blob_name: {blob_name} ")
+        
+        # Upload the file to Google Cloud Storage
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(blob_name)
+        blob.upload_from_file(file)
+
+        app.logger.info(f"File uploaded to {blob_name} in GCS")
+
+        # Respond with success
+        response = {'Doc added': 'successfully'}
+        response_pickled = jsonpickle.encode(response)
+        return Response(response=response_pickled, status=200, mimetype="application/json")
+
+    except Exception as e:
+        app.logger.error(f"Error uploading file: {str(e)}")
+        return jsonify({"error": f"Error uploading file: {str(e)}"}), 500
+
 
 # start flask app
 app.run(host="0.0.0.0", port=4000)
