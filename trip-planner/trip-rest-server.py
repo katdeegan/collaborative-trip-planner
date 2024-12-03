@@ -274,7 +274,7 @@ def getTripDayDetails(tripId):
 @app.route('/apiv1/addDocument/<int:tripId>', methods=['POST'])
 def addDocument(tripId):
     app.logger.info(f"Adding trip document associated with trip {tripId} to object store...")
-    # user id in request body, associate this user with group
+    # user id in request body, associate this user with group # TODO
 
 # TODO
     try:

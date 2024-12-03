@@ -78,7 +78,7 @@ else:
         else:
             print(f"Creating trip '{sys.argv[2]}'...")
             testCreateTrip(sys.argv[2], sys.argv[3], sys.argv[4])
-    elif cmd == 'updateTrip': 
+    elif cmd == 'updateTrip':  # works with json enconding hardcoded
         if (len(sys.argv) < 4):
             print(f"Usage: {sys.argv[0]} updateTrip <trip-id> <date>")
         else:
