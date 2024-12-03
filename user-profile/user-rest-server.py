@@ -7,14 +7,18 @@ from google.cloud.sql.connector import Connector
 import pg8000
 import sqlalchemy
 from sqlalchemy import text
+<<<<<<< HEAD
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS # for local testing - allow cross-origin requests (when frontend and backend are running on same machine on different ports)
+=======
+>>>>>>> ebef2826be125fdbb04d886d282e4173a796357a
 
 app = Flask(__name__)
 
 app.logger.setLevel(logging.DEBUG)
 
+<<<<<<< HEAD
 CORS(app) 
 
 
@@ -38,11 +42,34 @@ pool = sqlalchemy.create_engine(
     creator=getconn,
 )
 
+=======
+# initialize Connector object
+connector = Connector()
+
+# function to return the database connection
+def getconn():
+    conn = connector.connect(
+        "trip-planner-442220:us-central1:trip-planner-db",
+        "pg8000",
+        user="postgres",
+        password="TripPl4nn3r!",
+        db="postgres"
+    )
+    return conn
+
+# create connection pool
+pool = sqlalchemy.create_engine(
+    "postgresql+pg8000://",
+    creator=getconn,
+)
+
+>>>>>>> ebef2826be125fdbb04d886d282e4173a796357a
 # Test the connection
 with pool.connect() as conn:
     result = conn.execute(text("SELECT 1"))
     print(result.fetchone())
 
+<<<<<<< HEAD
 def validateUserPassword(userId, userEnteredPassword):
     app.logger.info(f"Validating password for User {userId}...")
     query = sqlalchemy.text('SELECT password FROM "users" WHERE user_id = :userId')
@@ -79,6 +106,8 @@ def getUserByEmail(email):
         
         response_pickled = jsonpickle.encode(json_resp)
         return Response(response=response_pickled, status=200, mimetype="application/json")
+=======
+>>>>>>> ebef2826be125fdbb04d886d282e4173a796357a
 
 @app.route('/apiv1/user/<string:username>', methods=['GET'])
 def getUserByUsername(username):
@@ -90,7 +119,11 @@ def getUserByUsername(username):
 
     with pool.connect() as db_conn:
         user = db_conn.execute(query, {"username":username})
+<<<<<<< HEAD
         json_resp = [dict(zip(user.keys(), row)) for row in user.fetchall()][0]
+=======
+        json_resp = [dict(zip(user.keys(), row)) for row in user.fetchall()]
+>>>>>>> ebef2826be125fdbb04d886d282e4173a796357a
 
         if not json_resp:
             error_resp = {'error': 'user not found', 'message': 'No user data found for the given username.'}
@@ -176,6 +209,7 @@ def getTripsForUser(userId):
     # returns JSON string which is a list of trip_ids
     app.logger.info(f"Retrieving groups for user {userId}...")
 
+<<<<<<< HEAD
     try:
 
         query = sqlalchemy.text('SELECT trip_id FROM "trip_members" WHERE user_id = :userId')
@@ -247,6 +281,27 @@ def loginUser():
     else:
         return Response(response=jsonpickle.encode({"error" : "Invalid password"}),status=401, mimetype="application/json")
             
+=======
+    query = sqlalchemy.text('SELECT trip_id FROM "trip_members" WHERE user_id = :userId')
+
+    with pool.connect() as db_conn:
+
+        user_trip_data = db_conn.execute(query, {"userId":userId}).fetchall()
+
+        # if user has no trips associated with them, return empty response
+        if not user_trip_data:
+            no_trips_resp = jsonpickle.encode([])
+            return Response(response=no_trips_resp, status=200, mimetype="application/json")
+        
+        user_trips = []
+        
+        for trip in user_trip_data:
+            user_trips.append(trip[0])
+
+        json_resp = jsonpickle.encode(user_trips)
+
+        return Response(response=json_resp, status=200, mimetype="application/json")
+>>>>>>> ebef2826be125fdbb04d886d282e4173a796357a
 
 
 # start flask app

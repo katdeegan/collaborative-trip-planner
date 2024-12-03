@@ -1,0 +1,5 @@
+frontend/node_modules/.cache/*
+frontend/node_modules/*
+trip-planner/venv/*
+frontend/node_modules/.package-lock.json
+

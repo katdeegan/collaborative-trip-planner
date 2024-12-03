@@ -8,8 +8,13 @@ import axios from 'axios'; // library for HTTP requests to backend API
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';  
 import { faPen, faPlus, faTimes  } from '@fortawesome/free-solid-svg-icons'; 
 import 'bootstrap/dist/css/bootstrap.min.css';
+<<<<<<< HEAD
 import '../styles/home.css'; 
 import ChangeTripDatesModal from './ChangeTripDatesModal';
+=======
+import '../styles/form-styles.css'; 
+import Modal from './Modal';
+>>>>>>> ebef2826be125fdbb04d886d282e4173a796357a
 
 const TripDetail = () => {
 
@@ -128,7 +133,11 @@ const TripDetail = () => {
        </div>
 
         {/* Modal with editable date fields */}
+<<<<<<< HEAD
         <ChangeTripDatesModal
+=======
+        <Modal
+>>>>>>> ebef2826be125fdbb04d886d282e4173a796357a
         isOpen={isModalOpen}
         onClose={closeModal}
         startDate={startDate}

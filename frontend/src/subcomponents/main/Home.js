@@ -7,10 +7,27 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import Title from './Title';
+<<<<<<< HEAD
 import '../styles/form-styles.css'; 
 
 function Home({username, userId}) {
   const handleLogOut = () => {
+=======
+
+class Home extends Component {
+    // TO-DO - check if uses is logged in
+    constructor(props) {
+        super(props);
+        // Initialize state
+        this.state = {
+            isAuthenticated: true
+          //isAuthenticated: localStorage.getItem('authToken') ? true : false, // Check if the user is logged in
+        };
+      }
+    
+      // Handle log out
+      handleLogOut = () => {
+>>>>>>> ebef2826be125fdbb04d886d282e4173a796357a
         console.log('Loggin user out...');
         // log user out
         /*
@@ -19,12 +36,21 @@ function Home({username, userId}) {
         */
       };
 
+<<<<<<< HEAD
   return (
             <>
             <div className='two-item-grid-container'>
               <h4>Welcome, {username}!</h4>
                 <Link to='/login'>
                 <button onClick={handleLogOut}>Log Out</button>
+=======
+    render() {
+        return (
+            <>
+            <div>
+                <Link to='/login'>
+                <button onClick={this.handleLogOut}>Log Out</button>
+>>>>>>> ebef2826be125fdbb04d886d282e4173a796357a
                 </Link>
             </div>
             <Title/>
@@ -38,8 +64,13 @@ function Home({username, userId}) {
                 </Link>
             </div>
             </>
+<<<<<<< HEAD
         );
     
+=======
+        )
+    }
+>>>>>>> ebef2826be125fdbb04d886d282e4173a796357a
 }
 
 
