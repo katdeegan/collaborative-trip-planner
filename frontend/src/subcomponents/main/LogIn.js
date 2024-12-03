@@ -1,30 +1,21 @@
 import React, { useState } from 'react';
 import '../styles/form-styles.css'; 
-<<<<<<< HEAD
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 function Login({onUserChange}) {
   const loginUrl = 'http://127.0.0.1:4000/apiv1/login'
 
-=======
-
-function Login() {
->>>>>>> ebef2826be125fdbb04d886d282e4173a796357a
   const [username, setUsername] = useState(''); // State for username/email
   const [password, setPassword] = useState(''); // State for password
   const [error, setError] = useState(''); // State for form validation errors
 
-<<<<<<< HEAD
   const navigate = useNavigate(); 
 
-=======
->>>>>>> ebef2826be125fdbb04d886d282e4173a796357a
   // Handle input changes
   const handleUsernameChange = (e) => setUsername(e.target.value);
   const handlePasswordChange = (e) => setPassword(e.target.value);
 
-<<<<<<< HEAD
   const login = async (user, password) => {
     axios.post(loginUrl, {
       email_or_username: user,
@@ -53,30 +44,12 @@ function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-=======
-  // Handle form submission
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Basic validation
->>>>>>> ebef2826be125fdbb04d886d282e4173a796357a
     if (!username || !password) {
       setError('Please fill in both fields');
       return;
     }
 
-<<<<<<< HEAD
     login(username, password)
-=======
-    // TESTING - Simulate login (you'd make an API call here to validate the credentials)
-    if (username === 'user' && password === 'password123') {
-      setError('');
-      alert('Login Successful!');
-      // Redirect user or handle successful login here
-    } else {
-      setError('Invalid username or password');
-    }
->>>>>>> ebef2826be125fdbb04d886d282e4173a796357a
   };
 
   return (
@@ -94,11 +67,7 @@ function Login() {
             placeholder="Enter your username or email"
           />
         </div>
-<<<<<<< HEAD
         <div className='inputGroup'>
-=======
-        <div class='inputGroup'>
->>>>>>> ebef2826be125fdbb04d886d282e4173a796357a
           <label htmlFor="password">Password:</label>
           <input
             type="password"

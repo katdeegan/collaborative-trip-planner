@@ -51,7 +51,6 @@ def testGetTripsForUser(userId):
 
     response = requests.get(get_user_trips_url, headers=headers)
     returnResp(response)
-<<<<<<< HEAD
 
 def testLoginUser(user, password):
     login_user_url = addr + f"/apiv1/login"
@@ -64,13 +63,6 @@ def testLoginUser(user, password):
 if len(sys.argv) < 2:
     print(f"Usage: {sys.argv[0]} <cmd>")
     print(f"    where <cmd> is one of: getUser, createUser, addToGroup, getGroups, login")
-=======
-
-if len(sys.argv) < 2:
-    print(f"Usage: {sys.argv[0]} <cmd>")
-    print(f"    where <cmd> is one of: getUser, createUser, addToGroup, getGroups")
->>>>>>> ebef2826be125fdbb04d886d282e4173a796357a
-
 else:
 
     cmd = sys.argv[1]
@@ -99,15 +91,11 @@ else:
         else:
             print(f"Retrieving user information for user {sys.argv[2]}...")
             testGetTripsForUser(sys.argv[2])
-<<<<<<< HEAD
     elif cmd == 'login':
         if (len(sys.argv) < 4):
             print(f"Usage: {sys.argv[0]} login <username or email> <password>")
         else:
             print(f"Retrieving user information for user {sys.argv[2]}...")
             testLoginUser(sys.argv[2], sys.argv[3])
-=======
->>>>>>> ebef2826be125fdbb04d886d282e4173a796357a
-
     else:
         print("Unknown option", cmd)
