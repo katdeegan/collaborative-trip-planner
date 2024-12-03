@@ -13,6 +13,14 @@ import ChangeTripDatesModal from './ChangeTripDatesModal';
 
 const TripDetail = () => {
 
+  const [tripOverview, setTripOverview] = useState(null);
+  const [loadingOverview, setLoadingOverview] = useState(true); 
+  const [errorOverview, setErrorOverview] = useState(null); 
+
+  const [trips, setTrips] = useState(null);
+  const [loadingDays, setLoadingDays] = useState(true); 
+  const [errorDays, setErrorDays] = useState(null); 
+
     const tripOverviewData = [
         { id: 1, name: 'My Trip', startDate: '2024-11-01T10:00:00Z', endDate: '2024-11-04T10:00:00Z' }
       ];

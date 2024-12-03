@@ -1,23 +1,34 @@
 /* Home page after user logs in. User can view list of all trip
 groups they are a member of, and create a new trip group. */
 
-import React, { Component } from "react";
+import React, { Component, useState, useEffect } from "react";
 import { Table } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import Title from './Title';
 import '../styles/form-styles.css'; 
+import axios from 'axios';
 
-function Home({username, userId}) {
+const initialState = {
+  tripId: ''
+};
+
+function Home({username, userId, onUserChange}) {
+  const [tripId, setTripId] = useState(initialState.tripId);
+
+  const onTripChange = (tripId) => {
+    setTripId(tripId)
+    console.info('Trip ID changed. tripId: ' + tripId);
+
+  }
+
   const handleLogOut = () => {
         console.log('Loggin user out...');
-        // log user out
-        /*
-        this.setState({ isAuthenticated: false }); // Update the state to logged out
-        localStorage.removeItem('authToken'); // Remove the authentication token
-        */
+        console.log(`Current user: ${userId} ${username}`)
+        onUserChange('','')
       };
+    
 
   return (
             <>
@@ -28,7 +39,7 @@ function Home({username, userId}) {
                 </Link>
             </div>
             <Title/>
-            <TripGroupList/>
+            <TripGroupList userId={userId} onTripChange={onTripChange}/>
             <div>
                 <Link to='/createtrip'>
                 <button style={{ alignItems: 'center', padding: '10px 20px', borderRadius: '5px' }}>
@@ -43,73 +54,55 @@ function Home({username, userId}) {
 }
 
 
-class TripGroupList extends Component {
-    // TO DO - dyanmically retrieve trip list
+const TripGroupList = ({userId, onTripChange}) => {
+    // retrieve trip list from logged in user
+    const [trips, setTrips] = useState(null);
+    const [loading, setLoading] = useState(true); 
+    const [error, setError] = useState(null); 
 
-    /*
-    constructor(props) {
-        super(props);
-        this.state = {
-          data: [],        // To store the fetched data
-          loading: true,   // To track loading state
-          error: null,     // To track any errors
-        };
-      }
-    
-      // Lifecycle method to fetch data when the component mounts
-      componentDidMount() {
-        this.fetchData();
-      }
-    
-      // Fetch data from an API or database
-      async fetchData() {
+    useEffect(() => {
+      const tripGroupsUrl = `http://127.0.0.1:4000/apiv1/tripGroup/${userId}`
+  
+      const fetchTrips = async () => {
         try {
-          const response = await fetch('/api/data'); // Replace with your API endpoint
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          const result = await response.json();
-          this.setState({
-            data: result,   // Set the fetched data
-            loading: false, // Set loading to false when data is fetched
-          });
+          const response = await axios.get(tripGroupsUrl);
+          setTrips(response.data); 
+          setLoading(false);
         } catch (error) {
-          this.setState({
-            error: error.message, // Set error message in state
-            loading: false,       // Set loading to false even if there's an error
-          });
+          setError(error.message);
+          setLoading(false);
         }
-      } */
-    
-    render() {
-        /*
-        const { data, loading, error } = this.state;
+      };
+  
+      fetchTrips();
+    }, []);  // Runs once when the component mounts
 
-        if (loading) {
-        return <div>Loading...</div>;
-        }
+    if (loading) {
+      return <div>Retrieving Trips...</div>;
+    }
+  
+    if (error) {
+      return <div>Error retrieving trips: {error}</div>;
+    }
 
-        if (error) {
-        return <div>Error: {error}</div>;
-        }*/
-
-        // TO DO - delete. placeholder trip list.
-        const tripGroups = ["Trip 1", "Roadtrip!!", "BOATS"];
-        const tripId = 100;
+    if (trips.length === 0) {
+      return <div>No trips available.</div>;
+    }
 
         return (
             <Table>
-                <thread>
-                    <th>Trip Groups</th>
-                    <th></th>
-                </thread>
+                <thead>
+                    <tr>
+                      <th>Trip Groups</th>
+                      <th></th>
+                    </tr>
+                </thead>
                 <tbody>
-                    {tripGroups.map((item, idx) => (
-                        <tr key={idx}>
-                            {/* TO dO - update based on DB, link to trip detail page */}
-                            <td>{item}</td>
+                    {trips.map((trip) => (
+                        <tr key={trip.trip_id}>
+                            <td>{trip.trip_name}</td>
                             <td>
-                                <Link to={`/trip/${tripId}`}>
+                                <Link to={`/trip/${trip.trip_id}`}>
                                     <FontAwesomeIcon icon={faArrowRight} />
                                 </Link>
                             </td>
@@ -120,7 +113,7 @@ class TripGroupList extends Component {
             </Table>
 
         )
-    }
+    
 }
 
 
