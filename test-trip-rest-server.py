@@ -96,7 +96,7 @@ else:
         else:
             print(f"Retrieving trip day information for trip {sys.argv[2]}...")
             testGetTripDays(sys.argv[2])
-    elif cmd == 'addDoc':
+    elif cmd == 'addDoc': # in progress
         if (len(sys.argv) < 3):
             print(f"Usage: {sys.argv[0]} addDoc <trip-id>")
         else:

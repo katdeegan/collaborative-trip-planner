@@ -278,10 +278,10 @@ def addDocument(tripId):
 
 # TODO
     try:
-        app.logger.info(f"getting file...")
+        app.logger.info(f"getting file from the request...")
         # Get the file from the request
         file = request.files['file']  # Assume file is sent as form-data in the 'file' field
-        app.logger.info(f" file gotten...")
+        app.logger.info(f"file received from request...")
         if not file:
             return jsonify({"error": "No file provided"}), 400
 
