@@ -162,11 +162,8 @@ const TripDetail = ({userId, tripId, onTripChange, onTripDayChange}) => {
       <h1>{tripOverview.trip_name}</h1>
       <div>
         <div className='two-item-grid-container-closer'>
-      <p >{`Trip Dates: ${formatDate(lowDate)} to ${formatDate(highDate)}`}</p>
+      <p ><strong>Dates: </strong>{`${formatDate(lowDate)} to ${formatDate(highDate)}`}</p>
       <div style={{marginBottom: 16 + 'px'}}>
-      <button className="edit-btn" onClick={openModal}>
-       <FontAwesomeIcon icon={faPen} />
-       </button>
        </div>
        </div>
 
