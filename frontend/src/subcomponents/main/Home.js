@@ -1,27 +1,18 @@
 /* Home page after user logs in. User can view list of all trip
 groups they are a member of, and create a new trip group. */
 
-import React, { Component, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Table } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRight, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRight, faPlus, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import Title from './Title';
 import '../styles/form-styles.css'; 
 import axios from 'axios';
 
-const initialState = {
-  tripId: ''
-};
 
-function Home({username, userId, onUserChange}) {
-  const [tripId, setTripId] = useState(initialState.tripId);
 
-  const onTripChange = (tripId) => {
-    setTripId(tripId)
-    console.info('Trip ID changed. tripId: ' + tripId);
-
-  }
+function Home({username, userId, onUserChange, tripId, onTripChange}) {
 
   const handleLogOut = () => {
         console.log('Loggin user out...');
@@ -60,10 +51,9 @@ const TripGroupList = ({userId, onTripChange}) => {
     const [loading, setLoading] = useState(true); 
     const [error, setError] = useState(null); 
 
-    useEffect(() => {
-      const tripGroupsUrl = `http://127.0.0.1:4000/apiv1/tripGroup/${userId}`
+    const tripGroupsUrl = `http://127.0.0.1:4000/apiv1/tripGroup/${userId}`
   
-      const fetchTrips = async () => {
+    const fetchTrips = async () => {
         try {
           const response = await axios.get(tripGroupsUrl);
           setTrips(response.data); 
@@ -73,9 +63,14 @@ const TripGroupList = ({userId, onTripChange}) => {
           setLoading(false);
         }
       };
-  
+
+    useEffect(() => {
       fetchTrips();
-    }, []);  // Runs once when the component mounts
+    }, []);
+
+    const handleRefresh = () => {
+      fetchTrips();  // Re-fetch trip data
+    };
 
     if (loading) {
       return <div>Retrieving Trips...</div>;
@@ -94,7 +89,20 @@ const TripGroupList = ({userId, onTripChange}) => {
                 <thead>
                     <tr>
                       <th>Trip Groups</th>
-                      <th></th>
+                      <th><button
+        onClick={handleRefresh}
+        disabled={loading}
+        style={{
+          fontSize: '17px',
+          backgroundColor: 'transparent',
+          border: 'none',
+          cursor: loading ? 'not-allowed' : 'pointer',
+          padding: '10px',
+          color: loading ? '#999' : '#1E90FF',}}
+      >
+        <FontAwesomeIcon icon={faSyncAlt} spin={loading} />
+      </button>
+                      </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -102,7 +110,7 @@ const TripGroupList = ({userId, onTripChange}) => {
                         <tr key={trip.trip_id}>
                             <td>{trip.trip_name}</td>
                             <td>
-                                <Link to={`/trip/${trip.trip_id}`}>
+                                <Link to={`/tripDetails`} onClick={() => onTripChange(trip.trip_id)}>
                                     <FontAwesomeIcon icon={faArrowRight} />
                                 </Link>
                             </td>

@@ -52,12 +52,25 @@ def testGetTripsForUser(userId):
     response = requests.get(get_user_trips_url, headers=headers)
     returnResp(response)
 
+def testGetUsersForTrip(tripId):
+    get_user_trips_url = addr + f"/apiv1/tripUsers/{tripId}"
+    headers = {'content-type': 'application/json'}
+
+    response = requests.get(get_user_trips_url, headers=headers)
+    returnResp(response)
+
 def testLoginUser(user, password):
     login_user_url = addr + f"/apiv1/login"
     headers = {'content-type': 'application/json'}
     data = jsonpickle.encode({ "email_or_username" : user,
                               "password" : password})
     response = requests.post(login_user_url, data=data, headers=headers)
+    returnResp(response)
+
+def testDeleteUserFromTrip(userId, tripId):
+    delete_trip_user_url = addr + f"/apiv1/deleteTripUser/{userId}/{tripId}"
+    headers = {'content-type': 'application/json'}
+    response = requests.delete(delete_trip_user_url, headers=headers)
     returnResp(response)
 
 if len(sys.argv) < 2:
@@ -91,11 +104,23 @@ else:
         else:
             print(f"Retrieving user information for user {sys.argv[2]}...")
             testGetTripsForUser(sys.argv[2])
+    elif cmd == 'getUsers':
+        if (len(sys.argv) < 3):
+            print(f"Usage: {sys.argv[0]} getUsers <tripId>")
+        else:
+            print(f"Retrieving user information for trip {sys.argv[2]}...")
+            testGetUsersForTrip(sys.argv[2])
     elif cmd == 'login':
         if (len(sys.argv) < 4):
             print(f"Usage: {sys.argv[0]} login <username or email> <password>")
         else:
             print(f"Retrieving user information for user {sys.argv[2]}...")
             testLoginUser(sys.argv[2], sys.argv[3])
+    elif cmd == 'deleteTripUser':
+        if (len(sys.argv) < 4):
+            print(f"Usage: {sys.argv[0]} deleteTripUser <user-id> <trip-id>")
+        else:
+            print(f"Deleting user {sys.argv[2]} from trip {sys.argv[3]}...")
+            testDeleteUserFromTrip(sys.argv[2], sys.argv[3])
     else:
         print("Unknown option", cmd)

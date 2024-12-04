@@ -3,8 +3,8 @@ import { useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import '../styles/edit-day-styles.css'
 
-const EditTripDay = () => {
-    const { dayNum, tripId, date } = useParams();
+const EditTripDay = ({userId, tripId, tripDayNum, tripDayDate, onTripDayChange}) => {
+    //const { dayNum, tripId, date } = useParams();
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -62,8 +62,8 @@ const tripDataByDay = [
 
   return (
     <div className="form-container">
-        <h2>Edit <strong> Day {dayNum}</strong>  Details </h2>
-        <p>{formatDate(date)}</p>
+        <h2>Edit <strong> Day {tripDayNum}</strong>  Details </h2>
+        <p>{formatDate(tripDayDate)}</p>
 
       {/* Form to collect name, email, and message */}
       <form onSubmit={handleSubmit} className="trip-day-form">
@@ -129,7 +129,7 @@ const tripDataByDay = [
       {/* Display the submitted data after submission */}
       {submittedData && (
         <div>
-          <h3>Successfully Saved Day {dayNum} Information:</h3>
+          <h3>Successfully Saved Day {tripDayNum} Information:</h3>
           <p><strong>Date:</strong> {submittedData.formDate}</p>
           <p><strong>Location:</strong> {submittedData.location}</p>
           <p><strong>Accommodations:</strong> {submittedData.accomodation}</p>

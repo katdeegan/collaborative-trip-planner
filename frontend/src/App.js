@@ -11,14 +11,19 @@ import './App.css';
 
 const initialState = {
   userId: '',
-  username: ''
+  username: '',
+  tripId: '',
+  tripDayNum: '',
+  tripDayDate: '',
 };
 
 
 function App() {
-  //const [route, setRoute] = useState(initialState.route);  // route state
   const [user, setUser] = useState(initialState.userId);
   const [username, setUsername] = useState(initialState.username);
+  const [tripId, setTripId] = useState(initialState.tripId);
+  const [tripDayNum, setTripDayNum] = useState(initialState.tripDayNum);
+  const [tripDayDate, setTripDayDate] = useState(initialState.tripDayDate);
 
   const onUserChange = (userId, username) => {
     setUser(userId)
@@ -26,22 +31,35 @@ function App() {
     console.info('User state changed. userId: ' + userId + ' , username: ' + username);
 
   }
-  return (
-    // pass state change methods to other pages, e.g. onRouteChange = {this.onRouteChange}
-    // access methods from within pages via this.prop.onRouteChange(
 
+  const onTripChange = (tripId) => {
+    setTripId(tripId)
+    console.info('Trip ID changed. tripId: ' + tripId);
+
+  }
+
+  const onTripDayChange = (dayNum, dayDate) => {
+    setTripDayNum(dayNum)
+    setTripDayDate(dayDate)
+    console.info('Trip day changed. Day ' + tripDayNum + ' ,' + tripDayDate);
+
+  }
+
+
+
+  return (
     <Router>
       <Routes>
         <Route 
           path='/'
-          element={user ? <Home username={username} userId={user} onUserChange = {onUserChange}/> : <Navigate to="/login" />}
+          element={user ? <Home username={username} userId={user} onUserChange = {onUserChange} tripId = {tripId} onTripChange = {onTripChange}/> : <Navigate to="/login" />}
         />
-        <Route path='/trip/:id' element={<TripDetail />} />
+        <Route path='/tripDetails' element={<TripDetail userId={user} tripId={tripId} onTripChange = {onTripChange} onTripDayChange = {onTripDayChange}/>} />
         <Route path='/login' element={<LogIn onUserChange = {onUserChange} />} />
         <Route path='/createaccount' element={<CreateAccount onUserChange = {onUserChange} />} />
-        <Route path='/createtrip' element={<CreateTrip />} />
-        <Route path='/editTripDay/:dayNum/:tripId/:date' element={<EditTripDay />} />
-        <Route path='/editTripMembers/:tripId' element={<EditTripMembers />} />
+        <Route path='/createtrip' element={<CreateTrip userId={user}/>} />
+        <Route path='/editTripDay' element={<EditTripDay userId={user} tripId={tripId} tripDayNum={tripDayNum} tripDayDate={tripDayDate} onTripDayChange={onTripDayChange}/>} />
+        <Route path='/editTripMembers/:tripId' element={<EditTripMembers tripId={tripId}/>} />
 
 
       </Routes>

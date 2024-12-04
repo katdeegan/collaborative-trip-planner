@@ -1,8 +1,6 @@
 // TO dO - update with proper logic for trip DB
-import React, { Component, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { Button, Table } from 'react-bootstrap';
-import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 import axios from 'axios'; // library for HTTP requests to backend API
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';  
@@ -11,123 +9,160 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/home.css'; 
 import ChangeTripDatesModal from './ChangeTripDatesModal';
 
-const TripDetail = () => {
+const TripDetail = ({userId, tripId, onTripChange, onTripDayChange}) => {
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const [tripOverview, setTripOverview] = useState(null);
-  const [loadingOverview, setLoadingOverview] = useState(true); 
-  const [errorOverview, setErrorOverview] = useState(null); 
+  const [tripDays, setTripDays] = useState(null);
+  const [tripMembers, setTripMembers] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [loadingDelete, setLoadingDelete] = useState(false);
+  const [highDate, setHighDate] = useState(null);
+  const [lowDate, setLowDate] = useState(null);
+  const [addTripDayResponseData, setAddTripDayResponseData] = useState(null);
 
-  const [trips, setTrips] = useState(null);
-  const [loadingDays, setLoadingDays] = useState(true); 
-  const [errorDays, setErrorDays] = useState(null); 
+  const tripOverviewUrl = `http://127.0.0.1:2000/apiv1/trip/${tripId}`
+  const tripDaysUrl = `http://127.0.0.1:2000/apiv1/tripDays/${tripId}`
+  const tripMembersUrl = `http://127.0.0.1:4000/apiv1/tripUsers/${tripId}`
+  const deleteTripDayUrl = `http://127.0.0.1:2000/apiv1/deleteTripDay/`
+  const addTripDayUrl = `http://127.0.0.1:2000/apiv1/tripDay`
 
-    const tripOverviewData = [
-        { id: 1, name: 'My Trip', startDate: '2024-11-01T10:00:00Z', endDate: '2024-11-04T10:00:00Z' }
-      ];
-
-    // TO do - make sure data is ordered by date
-    const tripDataByDay = [
-        { id: 1, tripId: 1, date: '2024-11-01T10:00:00Z', location: 'Madrid', accomodation: 'Madrid Motel - 100 Madrid St',
-            travel: 'Ryan Air flight 200', activities: 'Flamenco show', dining: '', notes: 'Day 1'
-          },
-          { id: 4, tripId: 1, date: '2024-11-02T10:00:00Z', location: 'Madrid', accomodation: 'Madrid Motel - 100 Madrid St',
-            travel: '', activities: 'Flamenco show', dining: '', notes: 'Day 2'
-          },
-          { id: 7, tripId: 1, date: '2024-11-03T10:00:00Z', location: 'Madrid', accomodation: 'Madrid Motel - 100 Madrid St',
-            travel: 'bus', activities: 'day trip', dining: 'tapas!', notes: 'Day 3'
-          },
-          { id: 10, tripId: 1, date: '2024-11-04T10:00:00Z', location: 'Madrid', accomodation: 'Madrid Motel - 100 Madrid St',
-            travel: 'Ryan Air flight 755', activities: 'explore!', dining: 'mischlin', notes: 'Day 4'
-          }
-
-      ];
-
-    const tripMemberData = [{username: "kat"}, {username: "sierra"}]
-
-    const { id } = useParams();
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const openModal = () => setIsModalOpen(true);
-    const closeModal = () => setIsModalOpen(false);
-    const [startDate, setStartDate] = useState(tripOverviewData[0].startDate);
-    const [endDate, setEndDate] = useState(tripOverviewData[0].endDate);
-
-    // Do we need?? this is for Add trip day
-    const [loading, setLoading] = useState(false);
-    
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return format(date, 'MMMM d, yyyy');
-    };
-
-    const handleSave = (newStartDate, newEndDate) => {
-        setStartDate(newStartDate);
-        setEndDate(newEndDate);
-        console.log('Saved dates:', newStartDate, newEndDate);
-      };
-
-      const deleteTripDay = async () => { 
-        console.log("Deleting trip day...")
-        const userConfirmed = window.confirm("Are you sure you want to delete this trip day?");
-        if (userConfirmed) {
-          // Proceed with the action if user clicks OK
-          console.log("Action confirmed!");
-          // You can execute any action here, such as calling an API or executing a function
-        } else {
-          // Action is canceled if user clicks Cancel
-          console.log("Action canceled.");
-        }
-
-      };
-    
-  // TO-DO: Function to add a new trip day
-  const addTripDay = async () => {
-    console.log("Adding trip day...")
-    setLoading(true);
-
-    // Create the payload to send to the backend API
-        const requestBody = {
-          };
-
-          try {
-            // Call the backend API (Replace with your actual backend URL)
-            const response = await fetch('http://localhost:5000/api/database-operation', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(requestBody),
-            });
-      
-            const data = await response.json();
-
-      if (response.ok) {
-        // If the operation is successful, log the success message
-        console.log(data.message);
-        alert(data.message); // Show success message to user
-      } else {
-        // If the operation failed, log the error message
-        console.log(data.message);
-        alert(data.message); // Show error message to user
-      }
-      // Reload the page after the operation is completed
-      window.location.reload();
-
-    } catch (error) {
-        // Handle any errors that occur during the fetch request
-        console.error('Error executing database operation:', error);
-        alert('An error occurred during the database operation.');
-      } finally {
-        setLoading(false);
-      }
+  const formatDate = (dateString) => {
+    const dateParts = dateString.split('T')[0];
+    const [year, month, day] = dateParts.split('-');
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const monthName = monthNames[parseInt(month, 10) - 1];
+    const dayWithoutLeadingZero = parseInt(day, 10);
+    return `${monthName} ${dayWithoutLeadingZero}, ${year}`
   };
 
+  const getNextDay = (dateString) => {
+    const date = new Date(dateString);
+
+    // Add one day to the date
+    date.setDate(date.getDate() + 1);
+
+    // Format the new date back to 'YYYY-MM-DD'
+    const nextDay = date.toISOString().split('T')[0]; // 'YYYY-MM-DD'
+
+    return nextDay;
+  }
+
+  const handleSave = (newStartDate, newEndDate) => {
+    setStartDate(newStartDate);
+    setEndDate(newEndDate);
+    console.log('Saved dates:', newStartDate, newEndDate);
+  };
+
+  const fetchTripData = async () => {
+    try {
+      const [tripOverviewResp, tripMemberResp, tripDaysResp] = await Promise.all([
+        axios.get(tripOverviewUrl), 
+        axios.get(tripMembersUrl), 
+        axios.get(tripDaysUrl), 
+      ]);
+
+      // Sort the trip days by date
+      const sortedTripDays = tripDaysResp.data.tripDays.sort((a, b) => {
+        const dateA = new Date(a.date); 
+        const dateB = new Date(b.date); 
+        return dateA - dateB;           
+      });
+
+      setTripOverview(tripOverviewResp.data);
+      setTripMembers(tripMemberResp.data);
+      setTripDays(sortedTripDays);
+
+      if (sortedTripDays.length > 0) {
+        const earliestDate = sortedTripDays[0].date;
+        const latestDate = sortedTripDays[sortedTripDays.length - 1].date; 
+        setLowDate(earliestDate);
+        setHighDate(latestDate);
+        console.log("First trip day: "+earliestDate)
+        console.log("Last trip day: "+latestDate)
+      }
+
+
+    } catch (err) {
+      setError('Failed to fetch trip data');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTripData();
+  }, []);
+
+  const deleteTripDay = async (tripDate, tripId) => { 
+    console.log("Deleting trip day...")
+    const userConfirmed = window.confirm("Are you sure you want to delete this trip day?");
+    if (userConfirmed) {
+      setLoadingDelete(true);
+      try {
+        const deleteResp = await axios.delete(deleteTripDayUrl + `${tripId}/${tripDate}`);
+
+        if (deleteResp.status === 200) {
+          console.log(`Trip day ${tripDate} deleted from trip ${tripId}`);
+          fetchTripData();
+        }
+      } catch (error) {
+        console.error("Error deleting the trip day:", error);
+      } finally {
+        setLoadingDelete(false);
+      }
+    } else {
+      console.log("Action canceled.");
+    }
+
+  };
+
+  const addTripDay = async (tripId, tripDate) => {
+      console.log("Adding trip day...")
+      setLoading(true); 
+      setError(null); 
+      try {
+        const postData = {trip_id: tripId, date: tripDate}
+  
+        const response = await axios.post(addTripDayUrl, postData);
+        setAddTripDayResponseData(response.data);
+      } catch (err) {
+        setError('An error occurred while trying to add day to the trip.');
+      } finally {
+        setLoading(false); 
+        fetchTripData();
+      }
+    };
+  
+
+  // Render the UI
+  if (loading) {
+    return <div>Loading Trip Details...</div>;
+  }
+
+  if (loadingDelete) {
+    return <div>Deleting trip day...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
     return (
     <div className = 'page-container' >
-      <h1>{tripOverviewData[0].name}</h1>
+      <h1>{tripOverview.trip_name}</h1>
       <div>
         <div className='two-item-grid-container-closer'>
-      <p >{`Trip Dates: ${formatDate(tripOverviewData[0].startDate)} to ${formatDate(tripOverviewData[0].endDate)}`}</p>
+      <p >{`Trip Dates: ${formatDate(lowDate)} to ${formatDate(highDate)}`}</p>
       <div style={{marginBottom: 16 + 'px'}}>
       <button className="edit-btn" onClick={openModal}>
        <FontAwesomeIcon icon={faPen} />
@@ -149,25 +184,25 @@ const TripDetail = () => {
             <div className="two-item-grid-container-closer">
             <h4>Trip Members:</h4>
             <div style={{marginBottom: 16 + 'px'}}>
-            <Link className="edit-btn" to={`/editTripMembers/${tripOverviewData[0].id}}`}>
+            <Link className="edit-btn" to={`/editTripMembers/${tripId}}`}>
                 <FontAwesomeIcon icon={faPen} /> 
             </Link>
             </div>
             </div>
             <ol>
-                {tripMemberData.map((user, index) => (
-                <li key={index}>{user.username}</li> // Map each username into a <li>
+                {tripMembers.map((user) => (
+                <li key={user.user_id}>{user.username}</li> // Map each username into a <li>
                 ))}
              </ol>
              
         </div>
 
       <div >
-        {tripDataByDay.map((item, idx) => (
+        {tripDays.map((item, idx) => (
             <div className='trip-day-div'>
             <div className='two-item-grid-container'>
                 <h1>Day {idx+1}: {item.location}</h1>
-                <Link className="edit-btn" to={`/editTripDay/${idx+1}/${item.tripId}/${item.date}`}>
+                <Link className="edit-btn" to={`/editTripDay`} onClick={() => onTripDayChange(idx+1, item.date)}>
                 <FontAwesomeIcon icon={faPen} /> 
                 </Link>
             </div>
@@ -183,7 +218,7 @@ const TripDetail = () => {
                 </thead>
                 <tbody>
                     <tr>
-                        <td>{item.accomodation}</td>
+                        <td>{item.accommodations}</td>
                         <td>
                         {item.travel}
                         </td>
@@ -196,7 +231,7 @@ const TripDetail = () => {
             </Table>
             <h5>Additional Notes:</h5>
             <p>{item.notes}</p>
-            <button onClick={deleteTripDay}>
+            <button onClick={() => deleteTripDay(item.date, tripId)}>
             <FontAwesomeIcon icon={faTimes} style={{ marginRight: '8px' }} />
             Delete Trip Day
             </button>
@@ -204,7 +239,7 @@ const TripDetail = () => {
             ))}
       </div>
       <div>
-      <button onClick={addTripDay}>
+      <button onClick={() => addTripDay(tripId, getNextDay(highDate))}>
        <FontAwesomeIcon icon={faPlus} style={{ marginRight: '8px' }} />
                 Add Trip Day
     </button>

@@ -90,12 +90,14 @@ def getUserByUsername(username):
 
     with pool.connect() as db_conn:
         user = db_conn.execute(query, {"username":username})
+        
+        user_rows = user.fetchall()
 
-        json_resp = [dict(zip(user.keys(), row)) for row in user.fetchall()][0]
-
-        if not json_resp:
+        if not user_rows:
             error_resp = {'error': 'user not found', 'message': 'No user data found for the given username.'}
             return Response(response=jsonpickle.encode(error_resp), status=404, mimetype="application/json")
+        
+        json_resp = dict(zip(user.keys(), user_rows[0]))
         
         response_pickled = jsonpickle.encode(json_resp)
         return Response(response=response_pickled, status=200, mimetype="application/json")
@@ -215,7 +217,71 @@ def getTripsForUser(userId):
         error_resp = {'error': str(e)}
         return Response(response=jsonpickle.encode(error_resp), status=500, mimetype="application/json")
     
+@app.route('/apiv1/tripUsers/<int:tripId>', methods=['GET'])
+def getUsersForTrip(tripId):
+    # returns list of users from given tripId
+    # returns JSON string which is a list of user_ids
+    app.logger.info(f"Retrieving users for trip {tripId}...")
 
+    try:
+
+        tripMembersQuery = sqlalchemy.text('SELECT user_id FROM "trip_members" WHERE trip_id = :tripId')
+        #tripMembersQuery = sqlalchemy.text('SELECT user_id, username FROM "users" WHERE user_id = :userId')
+
+        with pool.connect() as db_conn:
+
+            user_trip_data = db_conn.execute(tripMembersQuery, {"tripId":tripId}).fetchall()
+
+            # if trip has no users associated with them, return empty response
+            if not user_trip_data:
+                no_trips_resp = jsonpickle.encode([])
+                return Response(response=no_trips_resp, status=200, mimetype="application/json")
+            
+            trip_users = []
+            
+            for user in user_trip_data:
+                trip_users.append(user[0])
+            
+            app.logger.info(f"Users for Trip {tripId}: {trip_users}")
+
+            formatted_user_ids = ', '.join(map(str, trip_users))
+            tripMembersQuery = f"SELECT user_id, username FROM users WHERE user_id IN ({formatted_user_ids})"
+
+            trip_user_data = db_conn.execute(sqlalchemy.text(tripMembersQuery))
+
+            app.logger.info(trip_user_data)
+
+
+            trip_resp = [dict(zip(trip_user_data.keys(), row)) for row in trip_user_data.fetchall()]
+
+            return Response(response=jsonpickle.encode(trip_resp),status=200, mimetype="application/json")
+
+    except Exception as e:
+        error_resp = {'error': str(e)}
+        return Response(response=jsonpickle.encode(error_resp), status=500, mimetype="application/json")
+    
+@app.route('/apiv1/deleteTripUser/<int:userId>/<int:tripId>', methods=['DELETE'])
+def deleteTripUser(userId, tripId):
+    selectQuery = f"SELECT * FROM trip_members WHERE trip_id={tripId} and user_id={userId}"
+    deleteQuery = f"DELETE FROM trip_members WHERE trip_id={tripId} and user_id={userId}"
+    try:
+        with pool.connect() as db_conn:
+            # check if record exists
+            user_trip_data = db_conn.execute(sqlalchemy.text(selectQuery)).fetchall()
+            app.logger.info(user_trip_data)
+            if user_trip_data:
+                # record found, now delete 
+                db_conn.execute(sqlalchemy.text(deleteQuery)) 
+                db_conn.commit() 
+                
+                return jsonify({"message": f"User {userId} has been deleted from trip {tripId}."}), 200
+            else:
+                return jsonify({"error": "User not found"}), 404
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+ 
 @app.route('/apiv1/login', methods=['POST'])
 def loginUser():
     data = request.get_json()
