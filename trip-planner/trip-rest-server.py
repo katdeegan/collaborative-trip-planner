@@ -11,6 +11,7 @@ from datetime import date, datetime
 import datetime
 from google.cloud import storage
 from flask_cors import CORS # for local testing - allow cross-origin requests (when frontend and backend are running on same machine on different ports)
+import os
 
 app = Flask(__name__)
 
@@ -23,7 +24,8 @@ connector = Connector()
 
 # Initialize GCS client for doc storage
 storage_client = storage.Client()
-bucket_name = "trip-planner-docs"  
+BUCKET_NAME = "trip-planner-docs"  
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] ="/Users/sierrareschke/Downloads/trip-planner-442220-7eac072aaedd.json"
 
 # function to return the database connection
 def getconn():
@@ -382,7 +384,7 @@ def addDocument(tripId):
         app.logger.info(f"Blob_name: {blob_name} ")
         
         # Upload the file to Google Cloud Storage
-        bucket = storage_client.bucket(bucket_name)
+        bucket = storage_client.bucket(BUCKET_NAME)
         blob = bucket.blob(blob_name)
         blob.upload_from_file(file)
 
@@ -396,6 +398,35 @@ def addDocument(tripId):
     except Exception as e:
         app.logger.error(f"Error uploading file: {str(e)}")
         return jsonify({"error": f"Error uploading file: {str(e)}"}), 500
+
+
+@app.route('/apiv1/getDocuments/<int:tripId>', methods=['GET'])
+def get_trip_documents(tripId):
+    try:
+        # Define the prefix for the trip's folder
+        prefix = f"trip_documents/{tripId}/"
+
+        # Get the bucket and list blobs (files) under the prefix
+        bucket = storage_client.bucket(BUCKET_NAME)
+        blobs = bucket.list_blobs(prefix=prefix)
+
+        documents = []
+        for blob in blobs:
+            print(f"Blob found: {blob.name}")  # Log the name of each blob
+            # Exclude the folder placeholder (blobs with key == prefix)
+            if blob.name != prefix:
+                # Generate a signed URL for the blob
+                signed_url = blob.generate_signed_url(expiration=3600)  # URL valid for 1 hour
+                documents.append({
+                    "name": blob.name.split('/')[-1],  # Extract just the file name
+                    "url": signed_url
+                })
+
+        # Return the documents list
+        return jsonify({"tripId": tripId, "documents": documents})
+
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
 
 # start flask app

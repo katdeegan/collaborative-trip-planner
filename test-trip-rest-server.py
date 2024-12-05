@@ -87,6 +87,13 @@ def testDeleteTripDay(tripId, tripDate):
     response = requests.delete(delete_trip_day_url, headers=headers)
     returnResp(response)
 
+def testGetDocs(tripId):
+    get_docs_url = addr + f"/apiv1/getDocuments/{tripId}"
+    headers = {'content-type': 'application/json'}
+
+    response = requests.get(get_docs_url, headers=headers)
+    returnResp(response)
+
 if len(sys.argv) < 2:
     print(f"Usage: {sys.argv[0]} <cmd>")
     print(f"    where <cmd> is one of: createTrip, updateTrip, getTrip, getTripDays, addDoc")
@@ -145,6 +152,13 @@ else:
         else:
             print(f"Adding new trip document for trip with ID: {sys.argv[2]}...")
             testAddDoc(sys.argv[2])
+    
+    elif cmd == "getDocs":
+        if len(sys.argv) < 3:
+            print(f"Usage: {sys.argv[0]} getDocs <trip-id>")
+        else:
+            print(f"Retrieving documents for trip with ID: {sys.argv[2]}...")
+            testGetDocs(sys.argv[2])
     
 
     else:
