@@ -216,22 +216,28 @@ def updateTrip(tripId, dateString):
         if not request_data:
             return jsonify({"error": "No data provided"}), 400
         
-        #app.logger.info(f"dateString: " + dateString)
+        app.logger.info(request_data)
+
+        trip_date = dateString
+        new_trip_date = trip_date
+        '''
         try:
             trip_date = datetime.datetime.strptime(dateString, "%m-%d-%Y").date()
         except ValueError:
             trip_date = datetime.datetime.strptime(dateString, "%Y-%m-%d").date()
-
-        formatted_date = trip_date.strftime("%Y-%m-%dT%H:%M:%SZ")
-        app.logger.info(formatted_date)
+        '''
+        #formatted_date = trip_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+        app.logger.info(f"Original Trip Date: {trip_date}")
 
         # TODO - check that date and trip are valid (exist and in range)
 
         # Build the SQL update query dynamically
         fields_to_update = []
         for field, value in request_data.items():
-            if field not in {"location", "accommodations", "travel", "activities", "dining", "notes"}:
+            if field not in {"location", "accommodations", "travel", "activities", "dining", "notes", "date"}:
                 return jsonify({"error": f"Invalid field: {field}"}), 400
+            if field == "date":
+                new_trip_date = request_data["date"]
             fields_to_update.append(f"{field} = :{field}")
         
         if not fields_to_update:
@@ -256,13 +262,14 @@ def updateTrip(tripId, dateString):
         with pool.connect() as db_conn:
             result = db_conn.execute(update_query, {"trip_id": tripId, "trip_date": trip_date, **request_data})
             db_conn.execute(reorder_query)
+            db_conn.commit()
 
             # Check if the record was updated
             if result.rowcount == 0:
                 return jsonify({"error": "No matching record found"}), 404
 
         # Success response
-        response = {'tripID': tripId, 'date': dateString, 'updatedFields': list(request_data.keys())}
+        response = {'tripID': tripId, 'date': new_trip_date, 'updatedFields': list(request_data.keys())}
         response_pickled = jsonpickle.encode(response)
         return Response(response=response_pickled, status=200, mimetype="application/json")
     

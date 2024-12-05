@@ -1,15 +1,17 @@
 // TO dO - update with proper logic for trip DB
 import React, { useState, useEffect } from 'react';
 import { Button, Table } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios'; // library for HTTP requests to backend API
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';  
-import { faPen, faPlus, faTimes  } from '@fortawesome/free-solid-svg-icons'; 
+import { faPen, faPlus, faTimes, faArrowLeft } from '@fortawesome/free-solid-svg-icons'; 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/home.css'; 
 import ChangeTripDatesModal from './ChangeTripDatesModal';
 
 const TripDetail = ({userId, tripId, onTripChange, onTripDayChange}) => {
+
+  const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const openModal = () => setIsModalOpen(true);
@@ -78,6 +80,8 @@ const TripDetail = ({userId, tripId, onTripChange, onTripDayChange}) => {
         return dateA - dateB;           
       });
 
+      console.log(sortedTripDays);
+
       setTripOverview(tripOverviewResp.data);
       setTripMembers(tripMemberResp.data);
       setTripDays(sortedTripDays);
@@ -90,6 +94,7 @@ const TripDetail = ({userId, tripId, onTripChange, onTripDayChange}) => {
         console.log("First trip day: "+earliestDate)
         console.log("Last trip day: "+latestDate)
       }
+
 
 
     } catch (err) {
@@ -159,7 +164,25 @@ const TripDetail = ({userId, tripId, onTripChange, onTripDayChange}) => {
   }
     return (
     <div className = 'page-container' >
+      <div >
+      <button
+      style={{
+        fontSize: '16px',
+        backgroundColor: 'white', 
+        color: 'blue',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+      }}
+      onClick={() => navigate("/")}
+    >
+      <FontAwesomeIcon icon={faArrowLeft} style={{ marginRight: '8px' }} />
+      Return to Home
+    </button>
       <h1>{tripOverview.trip_name}</h1>
+      </div>
       <div>
         <div className='two-item-grid-container-closer'>
       <p ><strong>Dates: </strong>{`${formatDate(lowDate)} to ${formatDate(highDate)}`}</p>

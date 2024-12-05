@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate  } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';  
-import { faTimes  } from '@fortawesome/free-solid-svg-icons'; 
+import { faTimes, faArrowLeft  } from '@fortawesome/free-solid-svg-icons'; 
 import axios from 'axios';
 import '../styles/add-users-form.css'
 
@@ -20,6 +20,8 @@ const EditTripMembers = ({tripId}) => {
   const addTripMemberUrl = `http://127.0.0.1:4000/apiv1/tripGroup`
   const getUserInfoUrl = `http://127.0.0.1:4000/apiv1/user/`
   const deleteUserFromTripUrl = 'http://127.0.0.1:4000//apiv1/deleteTripUser/'
+
+  const navigate = useNavigate();
 
   const fetchTripMembers = async () => {
     try {
@@ -65,6 +67,7 @@ const EditTripMembers = ({tripId}) => {
   const handleSubmit = (event) => {
     event.preventDefault();
     addTripMember(newMember, tripId);
+    navigate('/tripDetails');
   };
 
   const deleteTripMember = async (userId, username, tripId) => { 
@@ -104,6 +107,23 @@ const EditTripMembers = ({tripId}) => {
 
   return (
     <div className="form-container">
+      <button
+      style={{
+        padding: '10px 20px',
+        fontSize: '16px',
+        backgroundColor: '#4CAF50', 
+        color: 'white',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+      }}
+      onClick={() => alert('Button clicked!')}
+    >
+      <FontAwesomeIcon icon={faArrowLeft} style={{ marginRight: '8px' }} />
+      Go Back
+    </button>
        <h2>Edit Trip Members</h2>
 
        <form onSubmit={handleSubmit} class="trip-day-form">

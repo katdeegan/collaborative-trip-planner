@@ -1,34 +1,98 @@
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { format } from 'date-fns';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; 
+import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';  
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons'; 
 import '../styles/edit-day-styles.css'
 
 const EditTripDay = ({userId, tripId, tripDayNum, tripDayDate, onTripDayChange}) => {
-    //const { dayNum, tripId, date } = useParams();
+  const [tripDay, setTripDay] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [formDate, setFormDate] = useState(''); 
+  const [location, setLocation] = useState('');
+  const [accomodation, setAccomodation] = useState('');
+  const [travel, setTravel] = useState('');
+  const [activities, setActivites] = useState('');
+  const [dining, setDining] = useState('');
+  const [notes, setNotes] = useState('');
 
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return format(date, 'MMMM d, yyyy');
+  const getTripDayUrl = `http://127.0.0.1:2000/apiv1/tripDay/${tripId}/${tripDayDate}` 
+  const patchTripDayUrl = `http://127.0.0.1:2000/apiv1/trip/${tripId}/${tripDayDate}` 
+
+  const navigate = useNavigate();
+
+  const fetchTripDayData = async () => {
+    console.log(tripDayDate)
+    try {
+      const tripDayDataResp = await axios.get(getTripDayUrl);
+      console.log(tripDayDataResp.data);
+      setTripDay(tripDayDataResp.data);
+      setLoading(false);
+
+      // set initial form values
+      setFormDate(formatDate(tripDayDate)); 
+      setLocation(tripDayDataResp.data.location || '');
+      setAccomodation(tripDayDataResp.data.accommodations || '');
+      setTravel(tripDayDataResp.data.travel || '');
+      setActivites(tripDayDataResp.data.activities || '');
+      setDining(tripDayDataResp.data.dining || '');
+      setNotes(tripDayDataResp.data.notes || '');
+
+    } catch (err) {
+      setError('Failed to fetch trip day data');
+      console.error(err);
+    } 
+  };
+
+  const patchTripDay = async (newDate, newActivities, newAccommodations, newDining, newLocation, newNotes, newTravel) => {
+    setLoading(true);
+    try {
+      const patchResp = axios.patch(patchTripDayUrl,
+        {
+          accommodations: newAccommodations,
+          activities: newActivities,
+          date: newDate,
+          dining: newDining,
+          location: newLocation,
+          notes: newNotes,
+          travel: newTravel,
+        },
+        {
+          'Content-Type': 'application/json',
+        }
+      );
+      console.log(patchResp.data);
+
+    }catch (err) {
+      setError('Failed to fetch trip day data');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTripDayData();
+  }, []);
+
+  const formatDate = (dateString) => {
+        const dateObject = new Date(dateString);
+        return dateObject.toISOString().split('T')[0];
     };
-// GET request to retrieve data by trip_id + date
-const tripDataByDay = [
-    {tripId: 1, date: '2024-11-01T10:00:00Z', location: 'Madrid', accomodation: 'Madrid Motel - 100 Madrid St',
-        travel: 'Ryan Air flight 200', activities: 'Flamenco show', dining: '', notes: 'Day 1'
-      }
+  
+    const formatDateLong = (dateString) => {
+      const dateParts = dateString.split('T')[0];
+      const [year, month, day] = dateParts.split('-');
+      const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      const monthName = monthNames[parseInt(month, 10) - 1];
+      const dayWithoutLeadingZero = parseInt(day, 10);
+      return `${monthName} ${dayWithoutLeadingZero}, ${year}`
+    };
 
-  ];
-
-  // State hooks to store form field values
-  const dateObject = new Date(tripDataByDay[0].date)
-  const formattedDate = dateObject.toISOString().split('T')[0];
-
-  const [formDate, setFormDate] = useState(formattedDate || ''); 
-  const [location, setLocation] = useState(tripDataByDay[0].location || '');
-  const [accomodation, setAccomodation] = useState(tripDataByDay[0].accomodation || '');
-  const [travel, setTravel] = useState(tripDataByDay[0].travel || '');
-  const [activities, setActivites] = useState(tripDataByDay[0].activities || '');
-  const [dining, setDining] = useState(tripDataByDay[0].dining || '');
-  const [notes, setNotes] = useState(tripDataByDay[0].notes || '');
 
   const [submittedData, setSubmittedData] = useState(null);
   
@@ -58,14 +122,40 @@ const tripDataByDay = [
     // Save the form data for display
     setSubmittedData(formData);
 
+    patchTripDay(formData.formDate, formData.activities, formData.accomodation, formData.dining, formData.location, formData.notes, formData.travel);
+
+    navigate('/tripDetails');
+
   };
+
+  if (loading) {
+    return <div>Loading Trip Day Details...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   return (
     <div className="form-container">
+      <button
+      style={{
+        fontSize: '16px',
+        backgroundColor: 'white', 
+        color: 'blue',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+      }}
+      onClick={() => navigate("/tripDetails")}
+    >
+      <FontAwesomeIcon icon={faArrowLeft} style={{ marginRight: '8px' }} />
+      Return to Trip Days
+    </button>
         <h2>Edit <strong> Day {tripDayNum}</strong>  Details </h2>
-        <p>{formatDate(tripDayDate)}</p>
-
-      {/* Form to collect name, email, and message */}
+        <p>{formatDateLong(tripDayDate)}</p>
       <form onSubmit={handleSubmit} className="trip-day-form">
     {/* Date Picker */}
     <div>
@@ -130,7 +220,7 @@ const tripDataByDay = [
       {submittedData && (
         <div>
           <h3>Successfully Saved Day {tripDayNum} Information:</h3>
-          <p><strong>Date:</strong> {submittedData.formDate}</p>
+          <p><strong>Date:</strong> {submittedData.formDate }</p>
           <p><strong>Location:</strong> {submittedData.location}</p>
           <p><strong>Accommodations:</strong> {submittedData.accomodation}</p>
           <p><strong>Travel:</strong> {submittedData.travel}</p>
