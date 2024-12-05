@@ -12,6 +12,8 @@ import datetime
 from google.cloud import storage
 from flask_cors import CORS # for local testing - allow cross-origin requests (when frontend and backend are running on same machine on different ports)
 import os
+from urllib.parse import quote
+
 
 app = Flask(__name__)
 
@@ -412,15 +414,16 @@ def get_trip_documents(tripId):
 
         documents = []
         for blob in blobs:
-            print(f"Blob found: {blob.name}")  # Log the name of each blob
-            # Exclude the folder placeholder (blobs with key == prefix)
+            print(f"Blob found: {blob.name}")  
+            # download link, replaces spaces with %20
+            download_link = "https://storage.googleapis.com/trip-planner-docs/" + quote(blob.name);
+
             if blob.name != prefix:
-                # Generate a signed URL for the blob
-                signed_url = blob.generate_signed_url(expiration=3600)  # URL valid for 1 hour
                 documents.append({
                     "name": blob.name.split('/')[-1],  # Extract just the file name
-                    "url": signed_url
+                    "url": download_link
                 })
+
 
         # Return the documents list
         return jsonify({"tripId": tripId, "documents": documents})
