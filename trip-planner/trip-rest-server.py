@@ -11,6 +11,9 @@ from datetime import date, datetime
 import datetime
 from google.cloud import storage
 from flask_cors import CORS # for local testing - allow cross-origin requests (when frontend and backend are running on same machine on different ports)
+import os
+from urllib.parse import quote
+
 
 app = Flask(__name__)
 
@@ -23,7 +26,8 @@ connector = Connector()
 
 # Initialize GCS client for doc storage
 storage_client = storage.Client()
-bucket_name = "trip-planner-docs"  
+BUCKET_NAME = "trip-planner-docs"  
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] ="/Users/sierrareschke/Downloads/trip-planner-442220-7eac072aaedd.json"
 
 # function to return the database connection
 def getconn():
@@ -369,33 +373,68 @@ def addDocument(tripId):
     # user id in request body, associate this user with group # TODO
 
 # TODO
+    # Get the file from the request
     try:
         app.logger.info(f"getting file from the request...")
-        # Get the file from the request
-        file = request.files['file']  # Assume file is sent as form-data in the 'file' field
-        app.logger.info(f"file received from request...")
-        if not file:
-            return jsonify({"error": "No file provided"}), 400
+        request_data = request.get_json()
+        filepath = request_data.get('file')
 
-        # Get the file content and prepare the blob name (could be based on tripId or file name)
-        blob_name = f"trip_documents/{tripId}/{file.filename}"
-        app.logger.info(f"Blob_name: {blob_name} ")
-        
-        # Upload the file to Google Cloud Storage
-        bucket = storage_client.bucket(bucket_name)
-        blob = bucket.blob(blob_name)
-        blob.upload_from_file(file)
+        if not filepath:
+            return jsonify({"error": "No file path provided"}), 400
 
+        app.logger.info(f"Filepath received: {filepath}")
+
+        # Open the file from the provided filepath
+        with open(filepath, 'rb') as file:
+            # Prepare the blob name
+            filename = filepath.split('/')[-1]  # Extract file name
+            blob_name = f"trip_documents/{tripId}/{filename}"
+
+            app.logger.info(f"Blob_name: {blob_name}")
+
+            # Upload the file to Google Cloud Storage
+            bucket = storage_client.bucket(BUCKET_NAME)
+            blob = bucket.blob(blob_name)
+            blob.upload_from_file(file)
+
+        # success
         app.logger.info(f"File uploaded to {blob_name} in GCS")
-
-        # Respond with success
-        response = {'Doc added': 'successfully'}
-        response_pickled = jsonpickle.encode(response)
-        return Response(response=response_pickled, status=200, mimetype="application/json")
+        return jsonify({"message": "File uploaded successfully", "blob_name": blob_name}), 200
 
     except Exception as e:
-        app.logger.error(f"Error uploading file: {str(e)}")
-        return jsonify({"error": f"Error uploading file: {str(e)}"}), 500
+        app.logger.error(f"Error while uploading file: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+
+@app.route('/apiv1/getDocuments/<int:tripId>', methods=['GET'])
+def get_trip_documents(tripId):
+    try:
+        # Define the prefix for the trip's folder
+        prefix = f"trip_documents/{tripId}/"
+
+        # Get the bucket and list blobs (files) under the prefix
+        bucket = storage_client.bucket(BUCKET_NAME)
+        blobs = bucket.list_blobs(prefix=prefix)
+
+        documents = []
+        for blob in blobs:
+            print(f"Blob found: {blob.name}")  
+            # download link, replaces spaces with %20
+            download_link = "https://storage.googleapis.com/trip-planner-docs/" + quote(blob.name);
+
+            if blob.name != prefix:
+                documents.append({
+                    "name": blob.name.split('/')[-1],  # Extract just the file name
+                    "url": download_link
+                })
+
+
+        # Return the documents list
+        return jsonify({"tripId": tripId, "documents": documents})
+
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
 
 
 # start flask app
