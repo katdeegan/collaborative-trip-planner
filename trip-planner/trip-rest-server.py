@@ -327,7 +327,7 @@ def updateTrip(tripId, dateString):
         # Build the SQL update query dynamically
         fields_to_update = []
         for field, value in request_data.items():
-            if field not in {"location", "accommodations", "travel", "activities", "dining", "notes", "date"}:
+            if field not in {"location", "accommodations", "travel", "activities", "dining", "notes", "date", "last_updated_by"}:
                 return jsonify({"error": f"Invalid field: {field}"}), 400
             if field == "date":
                 new_trip_date = request_data["date"]
