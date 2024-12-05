@@ -57,6 +57,7 @@ const EditTripDay = ({userId, tripId, tripDayNum, tripDayDate, onTripDayChange})
           location: newLocation,
           notes: newNotes,
           travel: newTravel,
+          last_updated_by: userId,
         },
         {
           'Content-Type': 'application/json',
@@ -141,7 +142,7 @@ const EditTripDay = ({userId, tripId, tripDayNum, tripDayDate, onTripDayChange})
       <button
       style={{
         fontSize: '16px',
-        backgroundColor: 'white', 
+        backgroundColor: 'transparent', 
         color: 'blue',
         border: 'none',
         borderRadius: '5px',

@@ -109,20 +109,19 @@ const EditTripMembers = ({tripId}) => {
     <div className="form-container">
       <button
       style={{
-        padding: '10px 20px',
         fontSize: '16px',
-        backgroundColor: '#4CAF50', 
-        color: 'white',
+        backgroundColor: 'transparent', 
+        color: 'blue',
         border: 'none',
         borderRadius: '5px',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
       }}
-      onClick={() => alert('Button clicked!')}
+      onClick={() => navigate("/tripDetails")}
     >
       <FontAwesomeIcon icon={faArrowLeft} style={{ marginRight: '8px' }} />
-      Go Back
+      Return to Trip Days
     </button>
        <h2>Edit Trip Members</h2>
 

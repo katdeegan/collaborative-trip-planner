@@ -7,6 +7,7 @@ import CreateTrip from './subcomponents/main/CreateTrip';
 import CreateAccount from './subcomponents/main/CreateAccount';
 import EditTripDay from './subcomponents/main/EditTripDay';
 import EditTripMembers from './subcomponents/main/EditTripMembers';
+import UploadFile from './subcomponents/main/UploadFile';
 import './App.css';
 
 const initialState = {
@@ -60,6 +61,7 @@ function App() {
         <Route path='/createtrip' element={<CreateTrip userId={user}/>} />
         <Route path='/editTripDay' element={<EditTripDay userId={user} tripId={tripId} tripDayNum={tripDayNum} tripDayDate={tripDayDate} onTripDayChange={onTripDayChange}/>} />
         <Route path='/editTripMembers/:tripId' element={<EditTripMembers tripId={tripId}/>} />
+        <Route path='/uploadTripDocument' element={<UploadFile userId={user} tripId={tripId}/>} />
 
 
       </Routes>

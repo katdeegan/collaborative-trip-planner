@@ -164,11 +164,11 @@ const TripDetail = ({userId, tripId, onTripChange, onTripDayChange}) => {
   }
     return (
     <div className = 'page-container' >
-      <div >
+      <div className='two-item-grid-container' >
       <button
       style={{
         fontSize: '16px',
-        backgroundColor: 'white', 
+        backgroundColor: 'transparent', 
         color: 'blue',
         border: 'none',
         borderRadius: '5px',
@@ -181,8 +181,22 @@ const TripDetail = ({userId, tripId, onTripChange, onTripDayChange}) => {
       <FontAwesomeIcon icon={faArrowLeft} style={{ marginRight: '8px' }} />
       Return to Home
     </button>
+    <button
+      style={{
+        fontSize: '16px',
+        backgroundColor: 'transparent', 
+        color: 'blue',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+      }}
+      onClick={() => navigate("/uploadTripDocument")}
+    > Upload Document </button>
+    </div>
       <h1>{tripOverview.trip_name}</h1>
-      </div>
+      
       <div>
         <div className='two-item-grid-container-closer'>
       <p ><strong>Dates: </strong>{`${formatDate(lowDate)} to ${formatDate(highDate)}`}</p>
