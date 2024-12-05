@@ -27,7 +27,6 @@ connector = Connector()
 # Initialize GCS client for doc storage
 storage_client = storage.Client()
 BUCKET_NAME = "trip-planner-docs"  
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] ="/Users/sierrareschke/Downloads/trip-planner-442220-7eac072aaedd.json"
 
 # function to return the database connection
 def getconn():
