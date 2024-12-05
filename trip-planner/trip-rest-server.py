@@ -51,88 +51,7 @@ with pool.connect() as conn:
     result = conn.execute(text("SELECT 1"))
     print(result.fetchone())
 
-@app.route('/apiv1/tripDay/<int:tripId>/<tripDate>', methods=['GET'])
-def getTripDayDetails(tripId, tripDate):
-    try:
-        with pool.connect() as db_conn:
-            query = f"SELECT * FROM trip_details WHERE trip_id={tripId} and date='{tripDate}'"
-            tripDayResult = db_conn.execute(sqlalchemy.text(query))
-
-            row = tripDayResult.fetchall()[0]
-            if not row:
-                error_resp = {'error': 'trip day not found'}
-                return Response(response=jsonpickle.encode(error_resp), status=404, mimetype="application/json")
-        
-            trip_day_list = {
-                    "trip_id": row[0],
-                    "date": row[1].strftime('%Y-%m-%d') if isinstance(row[1], date) else None,
-                    "location": row[2] if row[2] is not None else "N/A",
-                    "accommodations": row[3] if row[3] is not None else "N/A",
-                    "travel": row[4] if row[4] is not None else "N/A",
-                    "activities": row[5] if row[5] is not None else "N/A",
-                    "dining": row[6] if row[6] is not None else "N/A",
-                    "notes": row[7] if row[7] is not None else "N/A"
-                }
-            
-
-            app.logger.info(f"trip day: {trip_day_list}")
-
-            response_pickled = jsonpickle.encode(trip_day_list)
-            return Response(response=response_pickled, status=200, mimetype="application/json")
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/apiv1/deleteTripDay/<int:tripId>/<tripDate>', methods=['DELETE'])
-def deleteTripDay(tripId, tripDate):
-    # delete trip day using id + date
-    app.logger.info(f"Deleting trip day {tripDate} to Trip {tripId}")
-    
-    selectQuery = f"SELECT * FROM trip_details WHERE trip_id={tripId} and date='{tripDate}'"
-    deleteQuery = f"DELETE FROM trip_details WHERE trip_id={tripId} and date='{tripDate}'"
-    try:
-        with pool.connect() as db_conn:
-            # check if record exists
-            select_result = db_conn.execute(sqlalchemy.text(selectQuery)).fetchall()
-            app.logger.info(select_result)
-            if select_result:
-                # record found, now delete 
-                db_conn.execute(sqlalchemy.text(deleteQuery)) 
-                db_conn.commit() 
-                
-                return jsonify({"message": f"Trip day {tripDate} has been deleted from trip {tripId}."}), 200
-            else:
-                return jsonify({"error": "User not found"}), 404
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/apiv1/tripDay', methods=['POST'])
-def addTripDay():
-    try:
-        request_data = request.get_json()
-        tripId = request_data.get("trip_id")
-        tripDate = request_data.get("date")
-        app.logger.info(f"Adding trip day {tripDate} to Trip {tripId}")
-
-        if not tripId or not tripDate:
-            error_resp = {'error': 'missing trip_id, or date'}
-            return Response(response=jsonpickle.encode(error_resp), status=400, mimetype="application/json")
-        
-        insert_query = f"INSERT INTO trip_details (trip_id, date) VALUES ({tripId}, '{tripDate}');"
-        select_query = f"SELECT * FROM trip_details where trip_id={tripId} and date='{tripDate}';"
-
-        with pool.connect() as db_conn:
-            app.logger.info("Inserting trip day...")
-            db_conn.execute(sqlalchemy.text(insert_query))
-            db_conn.commit()
-            app.logger.info("Fetching trip day...")
-            result = db_conn.execute(sqlalchemy.text(select_query))
-            trip_resp = [dict(zip(result.keys(), row)) for row in result.fetchall()]
-            return Response(response=jsonpickle.encode(trip_resp),status=201, mimetype="application/json")
-    except Exception as e:
-        error_resp = {'error': str(e)}
-        return Response(response=jsonpickle.encode(error_resp), status=500, mimetype="application/json")
-
+# 1. create new trip
 @app.route('/apiv1/trip', methods=['POST'])
 def createTrip():
     # creates new Trip record in trip_overview DB
@@ -204,6 +123,176 @@ def createTrip():
         error_resp = {'error': str(e)}
         return Response(response=jsonpickle.encode(error_resp), status=500, mimetype="application/json")
 
+# 2. retrieve trip overview info based on trip ID
+@app.route('/apiv1/trip/<tripId>', methods=['GET'])
+def getTrip(tripId): 
+    # retrieves Trip record from trip_overview DB by tripName (trip name unique in database)
+    # returns JSON response containing trip_id, trip_name, start_date, end_date
+    app.logger.info(f"Retrieving trip overview information for trip '{tripId}'...")
+
+    query = sqlalchemy.text('SELECT * FROM "trip_overview" WHERE trip_id = :tripId')
+
+    with pool.connect() as db_conn:
+        # retrieve trip overview 
+        trip_overview_data = db_conn.execute(query, {"tripId":tripId})
+
+        # converts response to json
+        trip_resp = [dict(zip(trip_overview_data.keys(), row)) for row in trip_overview_data.fetchall()]
+
+        # if no tripName is found
+        if not trip_resp:
+            error_resp = {'error': 'Trip not found', 'message': 'No trip data found for the given trip ID.'}
+            return Response(response=jsonpickle.encode(error_resp), status=404, mimetype="application/json")
+
+        for row in trip_resp:
+            for key, val in row.items():
+                # convert date values to string in json response
+                if isinstance(val, date):
+                    row[key] = val.strftime('%Y-%m-%d')
+
+        # db_conn.commit() # TODO - not needed ?
+
+
+        response_pickled = jsonpickle.encode(trip_resp[0])
+        return Response(response=response_pickled, status=200, mimetype="application/json")
+
+# 3. retrieve all trip day records for specific tripId
+@app.route('/apiv1/tripDays/<int:tripId>', methods=['GET'])
+def getTripDaysDetails(tripId):
+    # retrieves all Trip Day records from trip_details DB with matching tripId
+    # request body should include tripId
+    # returns JSON response containing list of records, each record includes:
+    # {trip_id, date, location, accommodation, travel, activities, dining, notes}
+
+    app.logger.info(f"Retrieving trip day information for trip {tripId}...")
+
+    try:
+        # Query to retrieve all trip day records for the given tripId
+        with pool.connect() as db_conn:
+            query = text("""
+                SELECT trip_id, date, location, accommodations, travel, activities, dining, notes
+                FROM trip_details
+                WHERE trip_id = :trip_id
+            """)
+
+            result = db_conn.execute(query, {"trip_id": tripId})
+
+            # Fetch all rows from the result
+            trip_days = result.fetchall()
+
+            # If no records found, return a 404 error
+            if not trip_days:
+                return jsonify({"error": "No trip day records found for the given tripId"}), 404
+
+            # Format the records into a list of dictionaries
+            trip_day_list = [
+                {
+                    "trip_id": row[0],
+                    "date": row[1].strftime('%Y-%m-%d') if isinstance(row[1], date) else None,
+                    "location": row[2] if row[2] is not None else "N/A",
+                    "accommodations": row[3] if row[3] is not None else "N/A",
+                    "travel": row[4] if row[4] is not None else "N/A",
+                    "activities": row[5] if row[5] is not None else "N/A",
+                    "dining": row[6] if row[6] is not None else "N/A",
+                    "notes": row[7] if row[7] is not None else "N/A"
+                }
+                for row in trip_days
+            ]
+
+        # Prepare the JSON response
+        response_pickled = jsonpickle.encode({"tripDays": trip_day_list})
+        return Response(response=response_pickled, status=200, mimetype="application/json")
+
+    except Exception as e:
+        app.logger.error(f"Error retrieving trip day details: {e}")
+        return jsonify({"error": "Internal server error"}), 500
+
+# 4. retrieve all details for a specific day of a trip via tripId and tripDate
+@app.route('/apiv1/tripDay/<int:tripId>/<tripDate>', methods=['GET'])
+def getTripDayDetails(tripId, tripDate):
+    try:
+        with pool.connect() as db_conn:
+            query = f"SELECT * FROM trip_details WHERE trip_id={tripId} and date='{tripDate}'"
+            tripDayResult = db_conn.execute(sqlalchemy.text(query))
+
+            row = tripDayResult.fetchall()[0]
+            if not row:
+                error_resp = {'error': 'trip day not found'}
+                return Response(response=jsonpickle.encode(error_resp), status=404, mimetype="application/json")
+        
+            trip_day_list = {
+                    "trip_id": row[0],
+                    "date": row[1].strftime('%Y-%m-%d') if isinstance(row[1], date) else None,
+                    "location": row[2] if row[2] is not None else "N/A",
+                    "accommodations": row[3] if row[3] is not None else "N/A",
+                    "travel": row[4] if row[4] is not None else "N/A",
+                    "activities": row[5] if row[5] is not None else "N/A",
+                    "dining": row[6] if row[6] is not None else "N/A",
+                    "notes": row[7] if row[7] is not None else "N/A"
+                }
+            
+
+            app.logger.info(f"trip day: {trip_day_list}")
+
+            response_pickled = jsonpickle.encode(trip_day_list)
+            return Response(response=response_pickled, status=200, mimetype="application/json")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 5. add a day to the trip based on the tripId passed in the JSON body
+@app.route('/apiv1/tripDay', methods=['POST'])
+def addTripDay():
+    try:
+        request_data = request.get_json()
+        tripId = request_data.get("trip_id")
+        tripDate = request_data.get("date")
+        app.logger.info(f"Adding trip day {tripDate} to Trip {tripId}")
+
+        if not tripId or not tripDate:
+            error_resp = {'error': 'missing trip_id, or date'}
+            return Response(response=jsonpickle.encode(error_resp), status=400, mimetype="application/json")
+        
+        insert_query = f"INSERT INTO trip_details (trip_id, date) VALUES ({tripId}, '{tripDate}');"
+        select_query = f"SELECT * FROM trip_details where trip_id={tripId} and date='{tripDate}';"
+
+        with pool.connect() as db_conn:
+            app.logger.info("Inserting trip day...")
+            db_conn.execute(sqlalchemy.text(insert_query))
+            db_conn.commit()
+            app.logger.info("Fetching trip day...")
+            result = db_conn.execute(sqlalchemy.text(select_query))
+            trip_resp = [dict(zip(result.keys(), row)) for row in result.fetchall()]
+            return Response(response=jsonpickle.encode(trip_resp),status=201, mimetype="application/json")
+    except Exception as e:
+        error_resp = {'error': str(e)}
+        return Response(response=jsonpickle.encode(error_resp), status=500, mimetype="application/json")
+
+# 6. delete a day from a given trip by trip id and date of the day to delete
+@app.route('/apiv1/deleteTripDay/<int:tripId>/<tripDate>', methods=['DELETE'])
+def deleteTripDay(tripId, tripDate):
+    # delete trip day using id + date
+    app.logger.info(f"Deleting trip day {tripDate} to Trip {tripId}")
+    
+    selectQuery = f"SELECT * FROM trip_details WHERE trip_id={tripId} and date='{tripDate}'"
+    deleteQuery = f"DELETE FROM trip_details WHERE trip_id={tripId} and date='{tripDate}'"
+    try:
+        with pool.connect() as db_conn:
+            # check if record exists
+            select_result = db_conn.execute(sqlalchemy.text(selectQuery)).fetchall()
+            app.logger.info(select_result)
+            if select_result:
+                # record found, now delete 
+                db_conn.execute(sqlalchemy.text(deleteQuery)) 
+                db_conn.commit() 
+                
+                return jsonify({"message": f"Trip day {tripDate} has been deleted from trip {tripId}."}), 200
+            else:
+                return jsonify({"error": "User not found"}), 404
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 7. update an existing trip day by trip id and date
 @app.route('/apiv1/trip/<int:tripId>/<dateString>', methods=['PATCH'])
 def updateTrip(tripId, dateString):
     # TODO fix 
@@ -282,97 +371,11 @@ def updateTrip(tripId, dateString):
     except Exception as e:
         app.logger.error(f"Error updating trip: {e}")
         return jsonify({"error": "Internal server error"}), 500
-
-
-@app.route('/apiv1/trip/<tripId>', methods=['GET'])
-def getTrip(tripId): 
-    # retrieves Trip record from trip_overview DB by tripName (trip name unique in database)
-    # returns JSON response containing trip_id, trip_name, start_date, end_date
-    app.logger.info(f"Retrieving trip overview information for trip '{tripId}'...")
-
-    query = sqlalchemy.text('SELECT * FROM "trip_overview" WHERE trip_id = :tripId')
-
-    with pool.connect() as db_conn:
-        # retrieve trip overview 
-        trip_overview_data = db_conn.execute(query, {"tripId":tripId})
-
-        # converts response to json
-        trip_resp = [dict(zip(trip_overview_data.keys(), row)) for row in trip_overview_data.fetchall()]
-
-        # if no tripName is found
-        if not trip_resp:
-            error_resp = {'error': 'Trip not found', 'message': 'No trip data found for the given trip ID.'}
-            return Response(response=jsonpickle.encode(error_resp), status=404, mimetype="application/json")
-
-        for row in trip_resp:
-            for key, val in row.items():
-                # convert date values to string in json response
-                if isinstance(val, date):
-                    row[key] = val.strftime('%Y-%m-%d')
-
-        # db_conn.commit() # TODO - not needed ?
-
-
-        response_pickled = jsonpickle.encode(trip_resp[0])
-        return Response(response=response_pickled, status=200, mimetype="application/json")
-
-@app.route('/apiv1/tripDays/<int:tripId>', methods=['GET'])
-def getTripDaysDetails(tripId):
-    # retrieves all Trip Day records from trip_details DB with matching tripId
-    # request body should include tripId
-    # returns JSON response containing list of records, each record includes:
-    # {trip_id, date, location, accommodation, travel, activities, dining, notes}
-
-    app.logger.info(f"Retrieving trip day information for trip {tripId}...")
-
-    try:
-        # Query to retrieve all trip day records for the given tripId
-        with pool.connect() as db_conn:
-            query = text("""
-                SELECT trip_id, date, location, accommodations, travel, activities, dining, notes
-                FROM trip_details
-                WHERE trip_id = :trip_id
-            """)
-
-            result = db_conn.execute(query, {"trip_id": tripId})
-
-            # Fetch all rows from the result
-            trip_days = result.fetchall()
-
-            # If no records found, return a 404 error
-            if not trip_days:
-                return jsonify({"error": "No trip day records found for the given tripId"}), 404
-
-            # Format the records into a list of dictionaries
-            trip_day_list = [
-                {
-                    "trip_id": row[0],
-                    "date": row[1].strftime('%Y-%m-%d') if isinstance(row[1], date) else None,
-                    "location": row[2] if row[2] is not None else "N/A",
-                    "accommodations": row[3] if row[3] is not None else "N/A",
-                    "travel": row[4] if row[4] is not None else "N/A",
-                    "activities": row[5] if row[5] is not None else "N/A",
-                    "dining": row[6] if row[6] is not None else "N/A",
-                    "notes": row[7] if row[7] is not None else "N/A"
-                }
-                for row in trip_days
-            ]
-
-        # Prepare the JSON response
-        response_pickled = jsonpickle.encode({"tripDays": trip_day_list})
-        return Response(response=response_pickled, status=200, mimetype="application/json")
-
-    except Exception as e:
-        app.logger.error(f"Error retrieving trip day details: {e}")
-        return jsonify({"error": "Internal server error"}), 500
-    
-
+ 
+# 8. add trip document to object store for the given tripId
 @app.route('/apiv1/addDocument/<int:tripId>', methods=['POST'])
 def addDocument(tripId):
     app.logger.info(f"Adding trip document associated with trip {tripId} to object store...")
-    # user id in request body, associate this user with group # TODO
-
-# TODO
     # Get the file from the request
     try:
         app.logger.info(f"getting file from the request...")
@@ -405,8 +408,7 @@ def addDocument(tripId):
         app.logger.error(f"Error while uploading file: {e}")
         return jsonify({"error": str(e)}), 500
 
-
-
+# 9. get all trip documents stored in the object bucket for the given tripId
 @app.route('/apiv1/getDocuments/<int:tripId>', methods=['GET'])
 def get_trip_documents(tripId):
     try:
