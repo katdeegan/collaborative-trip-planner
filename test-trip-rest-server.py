@@ -64,12 +64,12 @@ def testGetTripDays(tripId):
     response = requests.get(get_trip_days_id_url, headers=headers)
     returnResp(response)
 
-def testAddDoc(id):
+def testAddDoc(id, filepath):
     add_doc_url = addr + f"/apiv1/addDocument/{id}"
     headers = {'content-type': 'application/json'}
 
     data = jsonpickle.encode({ "tripId" : id,
-                              "doc" : "encoded doc"})
+                              "file" : filepath})
 
     response = requests.post(add_doc_url, data=data, headers=headers)
     returnResp(response)
@@ -150,8 +150,8 @@ else:
         if (len(sys.argv) < 3):
             print(f"Usage: {sys.argv[0]} addDoc <trip-id>")
         else:
-            print(f"Adding new trip document for trip with ID: {sys.argv[2]}...")
-            testAddDoc(sys.argv[2])
+            print(f"Adding new trip document for trip with ID {sys.argv[2]}, filepath {sys.argv[3]}")
+            testAddDoc(sys.argv[2], sys.argv[3])
     
     elif cmd == "getDocs":
         if len(sys.argv) < 3:
