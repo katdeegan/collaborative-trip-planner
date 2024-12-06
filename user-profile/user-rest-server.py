@@ -80,28 +80,8 @@ def getUserByEmail(email):
         response_pickled = jsonpickle.encode(json_resp)
         return Response(response=response_pickled, status=200, mimetype="application/json")
 
-@app.route('/apiv1/user/<string:username>', methods=['GET'])
-def getUserByUsername(username):
-    # retrieves User record from users DB (username must be unique)
-    # returns JSON response containing user_id, username, email, password
-    app.logger.info(f"Retrieving user for username: {username}")
 
-    query = sqlalchemy.text('SELECT * FROM "users" WHERE username = :username')
-
-    with pool.connect() as db_conn:
-        user = db_conn.execute(query, {"username":username})
-        
-        user_rows = user.fetchall()
-
-        if not user_rows:
-            error_resp = {'error': 'user not found', 'message': 'No user data found for the given username.'}
-            return Response(response=jsonpickle.encode(error_resp), status=404, mimetype="application/json")
-        
-        json_resp = dict(zip(user.keys(), user_rows[0]))
-        
-        response_pickled = jsonpickle.encode(json_resp)
-        return Response(response=response_pickled, status=200, mimetype="application/json")
-
+# 1. create new user in User Profile Database
 @app.route('/apiv1/user', methods=['POST'])
 def createUser():
     # creates new User record in users DB
@@ -139,7 +119,31 @@ def createUser():
     except Exception as e:
         error_resp = {'error': str(e)}
         return Response(response=jsonpickle.encode(error_resp), status=500, mimetype="application/json")
-    
+
+# 2. retrieve user based on username
+@app.route('/apiv1/user/<string:username>', methods=['GET'])
+def getUserByUsername(username):
+    # retrieves User record from users DB (username must be unique)
+    # returns JSON response containing user_id, username, email, password
+    app.logger.info(f"Retrieving user for username: {username}")
+
+    query = sqlalchemy.text('SELECT * FROM "users" WHERE username = :username')
+
+    with pool.connect() as db_conn:
+        user = db_conn.execute(query, {"username":username})
+        
+        user_rows = user.fetchall()
+
+        if not user_rows:
+            error_resp = {'error': 'user not found', 'message': 'No user data found for the given username.'}
+            return Response(response=jsonpickle.encode(error_resp), status=404, mimetype="application/json")
+        
+        json_resp = dict(zip(user.keys(), user_rows[0]))
+        
+        response_pickled = jsonpickle.encode(json_resp)
+        return Response(response=response_pickled, status=200, mimetype="application/json")
+
+# 3. associate a user with a trip group
 @app.route('/apiv1/tripGroup', methods=['POST'])
 def addUserToTripGroup():
     # creates new record in trip_members DB to associate user with trip group
@@ -175,6 +179,7 @@ def addUserToTripGroup():
         error_resp = {'error': str(e)}
         return Response(response=jsonpickle.encode(error_resp), status=500, mimetype="application/json")
 
+# 4. retrieves all trips groups user is a part of
 @app.route('/apiv1/tripGroup/<int:userId>', methods=['GET'])
 def getTripsForUser(userId):
     # retrieves records from trip_members DB where user_id == userId
@@ -216,7 +221,8 @@ def getTripsForUser(userId):
     except Exception as e:
         error_resp = {'error': str(e)}
         return Response(response=jsonpickle.encode(error_resp), status=500, mimetype="application/json")
-    
+ 
+# 5. retrieves all users belonging to a specific trip
 @app.route('/apiv1/tripUsers/<int:tripId>', methods=['GET'])
 def getUsersForTrip(tripId):
     # returns list of users from given tripId
@@ -260,6 +266,7 @@ def getUsersForTrip(tripId):
         error_resp = {'error': str(e)}
         return Response(response=jsonpickle.encode(error_resp), status=500, mimetype="application/json")
     
+# 6. deletes a user from a trip
 @app.route('/apiv1/deleteTripUser/<int:userId>/<int:tripId>', methods=['DELETE'])
 def deleteTripUser(userId, tripId):
     selectQuery = f"SELECT * FROM trip_members WHERE trip_id={tripId} and user_id={userId}"
@@ -281,7 +288,7 @@ def deleteTripUser(userId, tripId):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
- 
+# 7. login a user
 @app.route('/apiv1/login', methods=['POST'])
 def loginUser():
     data = request.get_json()
@@ -316,7 +323,6 @@ def loginUser():
     else:
         return Response(response=jsonpickle.encode({"error" : "Invalid password"}),status=401, mimetype="application/json")
             
-
 
 # start flask app
 app.run(host="0.0.0.0", port=4000, debug=True)
