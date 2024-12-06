@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: trip-server-service
+spec:
+  selector:
+    app: trip-server
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 2000
+  type: LoadBalancer 

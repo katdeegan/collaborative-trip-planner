@@ -4,11 +4,8 @@ from flask import Flask, request, Response, jsonify
 import jsonpickle
 import logging
 from google.cloud.sql.connector import Connector
-import pg8000
 import sqlalchemy
 from sqlalchemy import text
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS # for local testing - allow cross-origin requests (when frontend and backend are running on same machine on different ports)
 
 app = Flask(__name__)
@@ -17,31 +14,35 @@ app.logger.setLevel(logging.DEBUG)
 
 CORS(app) 
 
-
-# initialize Connector object
-connector = Connector()
-
 # function to return the database connection
-def getconn():
-    conn = connector.connect(
-        "trip-planner-442220:us-central1:trip-planner-db",
-        "pg8000",
-        user="postgres",
-        password="TripPl4nn3r!",
-        db="postgres"
+try: 
+    # initialize Connector object
+    connector = Connector()
+
+    def getconn():
+        conn = connector.connect(
+            "trip-planner-442220:us-central1:trip-planner-db",
+            "pg8000",
+            user="postgres",
+            password="TripPl4nn3r!",
+            db="postgres"
+        )
+        return conn
+
+    # create connection pool
+    pool = sqlalchemy.create_engine(
+        "postgresql+pg8000://",
+        creator=getconn,
     )
-    return conn
 
-# create connection pool
-pool = sqlalchemy.create_engine(
-    "postgresql+pg8000://",
-    creator=getconn,
-)
+    # Test the connection
+    with pool.connect() as conn:
+        result = conn.execute(text("SELECT 1"))
+        print(result.fetchone())
 
-# Test the connection
-with pool.connect() as conn:
-    result = conn.execute(text("SELECT 1"))
-    print(result.fetchone())
+except Exception as err:
+    print(f"Error connecting to database: {err}")
+
 
 def validateUserPassword(userId, userEnteredPassword):
     app.logger.info(f"Validating password for User {userId}...")

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../styles/form-styles.css'; 
 
-function CreateAccount({onUserChange}) {
+function CreateAccount({userServerHost, tripServerHost, onUserChange}) {
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -47,7 +47,7 @@ function CreateAccount({onUserChange}) {
           setIsSubmitting(true);
           console.log('Create Account Data:', formData);
 
-          const createUserUrl = 'http://127.0.0.1:4000/apiv1/user';
+          const createUserUrl = userServerHost + '/apiv1/user';
 
           const newUserData = {
             username: formData.username,

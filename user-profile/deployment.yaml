@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-server
+spec:
+  replicas: 1  
+  selector:
+    matchLabels:
+      app: user-server
+  template:
+    metadata:
+      labels:
+        app: user-server
+    spec:
+      containers:
+      - name: user-server
+        image: gcr.io/trip-planner-442220/trip-planner-user-server:latest
+        ports:
+        - containerPort: 4000 
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: "/app/db-serv-acc.json"
+

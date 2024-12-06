@@ -1,12 +1,12 @@
 // FormPage.js (The form where you select multiple options)
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate  } from 'react-router-dom';
+import { useNavigate  } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';  
 import { faTimes, faArrowLeft  } from '@fortawesome/free-solid-svg-icons'; 
 import axios from 'axios';
 import '../styles/add-users-form.css'
 
-const EditTripMembers = ({tripId}) => {
+const EditTripMembers = ({userServerHost, tripServerHost, tripId}) => {
   const [tripMembers, setTripMembers] = useState(null);
   const [addUserResponseData, setAddUserResponseData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,10 +16,10 @@ const EditTripMembers = ({tripId}) => {
   const [newMember, setNewMember] = useState();
   const handleNewMemberChange = (event) => setNewMember(event.target.value);
 
-  const tripMembersUrl = `http://127.0.0.1:4000/apiv1/tripUsers/${tripId}`
-  const addTripMemberUrl = `http://127.0.0.1:4000/apiv1/tripGroup`
-  const getUserInfoUrl = `http://127.0.0.1:4000/apiv1/user/`
-  const deleteUserFromTripUrl = 'http://127.0.0.1:4000//apiv1/deleteTripUser/'
+  const tripMembersUrl = `${userServerHost}/apiv1/tripUsers/${tripId}`
+  const addTripMemberUrl = `${userServerHost}/apiv1/tripGroup`
+  const getUserInfoUrl = `${userServerHost}/apiv1/user/`
+  const deleteUserFromTripUrl = userServerHost + '/apiv1/deleteTripUser/'
 
   const navigate = useNavigate();
 

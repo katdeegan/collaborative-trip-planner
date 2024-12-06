@@ -1,5 +1,4 @@
 Flask
 jsonpickle
-logging
-requests
-Flask-JWT-Extended
+flask-cors
+sqlalchemy

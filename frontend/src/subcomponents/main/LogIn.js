@@ -3,8 +3,8 @@ import '../styles/form-styles.css';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-function Login({onUserChange}) {
-  const loginUrl = 'http://127.0.0.1:4000/apiv1/login'
+function Login({userServerHost, tripServerHost, onUserChange}) {
+  const loginUrl = userServerHost + '/apiv1/login'
 
   const [username, setUsername] = useState(''); // State for username/email
   const [password, setPassword] = useState(''); // State for password

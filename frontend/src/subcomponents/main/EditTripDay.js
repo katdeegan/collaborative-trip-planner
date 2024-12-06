@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons'; 
 import '../styles/edit-day-styles.css'
 
-const EditTripDay = ({userId, tripId, tripDayNum, tripDayDate, onTripDayChange}) => {
+const EditTripDay = ({userServerHost, tripServerHost, userId, tripId, tripDayNum, tripDayDate, onTripDayChange}) => {
   const [tripDay, setTripDay] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,8 +17,8 @@ const EditTripDay = ({userId, tripId, tripDayNum, tripDayDate, onTripDayChange})
   const [dining, setDining] = useState('');
   const [notes, setNotes] = useState('');
 
-  const getTripDayUrl = `http://127.0.0.1:2000/apiv1/tripDay/${tripId}/${tripDayDate}` 
-  const patchTripDayUrl = `http://127.0.0.1:2000/apiv1/trip/${tripId}/${tripDayDate}` 
+  const getTripDayUrl = `${tripServerHost}/apiv1/tripDay/${tripId}/${tripDayDate}` 
+  const patchTripDayUrl = `${tripServerHost}/apiv1/trip/${tripId}/${tripDayDate}` 
 
   const navigate = useNavigate();
 

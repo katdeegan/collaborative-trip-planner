@@ -20,6 +20,8 @@ const initialState = {
 
 
 function App() {
+  const userServerHost = 'http://34.45.72.147';
+  const tripServerHost = 'http://34.55.49.144';
   const [user, setUser] = useState(initialState.userId);
   const [username, setUsername] = useState(initialState.username);
   const [tripId, setTripId] = useState(initialState.tripId);
@@ -53,15 +55,15 @@ function App() {
       <Routes>
         <Route 
           path='/'
-          element={user ? <Home username={username} userId={user} onUserChange = {onUserChange} tripId = {tripId} onTripChange = {onTripChange}/> : <Navigate to="/login" />}
+          element={user ? <Home userServerHost={userServerHost} tripServerHost={tripServerHost} username={username} userId={user} onUserChange = {onUserChange} tripId = {tripId} onTripChange = {onTripChange}/> : <Navigate to="/login" />}
         />
-        <Route path='/tripDetails' element={<TripDetail userId={user} tripId={tripId} onTripChange = {onTripChange} onTripDayChange = {onTripDayChange}/>} />
-        <Route path='/login' element={<LogIn onUserChange = {onUserChange} />} />
-        <Route path='/createaccount' element={<CreateAccount onUserChange = {onUserChange} />} />
-        <Route path='/createtrip' element={<CreateTrip userId={user}/>} />
-        <Route path='/editTripDay' element={<EditTripDay userId={user} tripId={tripId} tripDayNum={tripDayNum} tripDayDate={tripDayDate} onTripDayChange={onTripDayChange}/>} />
-        <Route path='/editTripMembers/:tripId' element={<EditTripMembers tripId={tripId}/>} />
-        <Route path='/uploadTripDocument' element={<UploadFile userId={user} tripId={tripId}/>} />
+        <Route path='/tripDetails' element={<TripDetail userServerHost={userServerHost} tripServerHost={tripServerHost} userId={user} tripId={tripId} onTripChange = {onTripChange} onTripDayChange = {onTripDayChange}/>} />
+        <Route path='/login' element={<LogIn userServerHost={userServerHost} tripServerHost={tripServerHost} onUserChange = {onUserChange} />} />
+        <Route path='/createaccount' element={<CreateAccount userServerHost={userServerHost} tripServerHost={tripServerHost} onUserChange = {onUserChange} />} />
+        <Route path='/createtrip' element={<CreateTrip userServerHost={userServerHost} tripServerHost={tripServerHost} userId={user}/>} />
+        <Route path='/editTripDay' element={<EditTripDay userServerHost={userServerHost} tripServerHost={tripServerHost} userId={user} tripId={tripId} tripDayNum={tripDayNum} tripDayDate={tripDayDate} onTripDayChange={onTripDayChange}/>} />
+        <Route path='/editTripMembers/:tripId' element={<EditTripMembers userServerHost={userServerHost} tripServerHost={tripServerHost} tripId={tripId}/>} />
+        <Route path='/uploadTripDocument' element={<UploadFile userServerHost={userServerHost} tripServerHost={tripServerHost} userId={user} tripId={tripId}/>} />
 
 
       </Routes>

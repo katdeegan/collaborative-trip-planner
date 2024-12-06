@@ -12,7 +12,7 @@ import axios from 'axios';
 
 
 
-function Home({username, userId, onUserChange, tripId, onTripChange}) {
+function Home({userServerHost, tripServerHost, username, userId, onUserChange, tripId, onTripChange}) {
 
   const handleLogOut = () => {
         console.log('Loggin user out...');
@@ -30,7 +30,7 @@ function Home({username, userId, onUserChange, tripId, onTripChange}) {
                 </Link>
             </div>
             <Title/>
-            <TripGroupList userId={userId} onTripChange={onTripChange}/>
+            <TripGroupList userServerHost={userServerHost} userId={userId} onTripChange={onTripChange}/>
             <div>
                 <Link to='/createtrip'>
                 <button style={{ alignItems: 'center', padding: '10px 20px', borderRadius: '5px' }}>
@@ -45,13 +45,13 @@ function Home({username, userId, onUserChange, tripId, onTripChange}) {
 }
 
 
-const TripGroupList = ({userId, onTripChange}) => {
+const TripGroupList = ({userServerHost, userId, onTripChange}) => {
     // retrieve trip list from logged in user
     const [trips, setTrips] = useState(null);
     const [loading, setLoading] = useState(true); 
     const [error, setError] = useState(null); 
 
-    const tripGroupsUrl = `http://127.0.0.1:4000/apiv1/tripGroup/${userId}`
+    const tripGroupsUrl = `${userServerHost}/apiv1/tripGroup/${userId}`
   
     const fetchTrips = async () => {
         try {

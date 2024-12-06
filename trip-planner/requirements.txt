@@ -1,7 +1,4 @@
 Flask
 jsonpickle
-logging
-requests
-psycopg2-binary
-"cloud-sql-python-connector[pg8000]"
-install google-cloud-storage
+flask-cors
+sqlalchemy

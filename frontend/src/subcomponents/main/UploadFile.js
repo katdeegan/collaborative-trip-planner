@@ -5,7 +5,7 @@ import { faArrowLeft  } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 import '../styles/form-styles.css'; 
 
-const FileUpload = ({userId, tripId}) => {
+const FileUpload = ({userServerHost, tripServerHost, userId, tripId}) => {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [filePath, setFilePath] = useState('');
@@ -14,8 +14,8 @@ const FileUpload = ({userId, tripId}) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const getTripDocsUrl = `http://127.0.0.1:2000/apiv1/getDocuments/${tripId}`
-  const uploadTripDocUrl = `http://127.0.0.1:2000/apiv1/addDocument/${tripId}`
+  const getTripDocsUrl = `${tripServerHost}/apiv1/getDocuments/${tripId}`
+  const uploadTripDocUrl = `${tripServerHost}/apiv1/addDocument/${tripId}`
 
   const navigate = useNavigate();
 

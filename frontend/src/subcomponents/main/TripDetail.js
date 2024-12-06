@@ -9,7 +9,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/home.css'; 
 import ChangeTripDatesModal from './ChangeTripDatesModal';
 
-const TripDetail = ({userId, tripId, onTripChange, onTripDayChange}) => {
+const TripDetail = ({userServerHost, tripServerHost, userId, tripId, onTripChange, onTripDayChange}) => {
 
   const navigate = useNavigate();
 
@@ -29,11 +29,11 @@ const TripDetail = ({userId, tripId, onTripChange, onTripDayChange}) => {
   const [lowDate, setLowDate] = useState(null);
   const [addTripDayResponseData, setAddTripDayResponseData] = useState(null);
 
-  const tripOverviewUrl = `http://127.0.0.1:2000/apiv1/trip/${tripId}`
-  const tripDaysUrl = `http://127.0.0.1:2000/apiv1/tripDays/${tripId}`
-  const tripMembersUrl = `http://127.0.0.1:4000/apiv1/tripUsers/${tripId}`
-  const deleteTripDayUrl = `http://127.0.0.1:2000/apiv1/deleteTripDay/`
-  const addTripDayUrl = `http://127.0.0.1:2000/apiv1/tripDay`
+  const tripOverviewUrl = `${tripServerHost}/apiv1/trip/${tripId}`
+  const tripDaysUrl = `${tripServerHost}/apiv1/tripDays/${tripId}`
+  const tripMembersUrl = `${userServerHost}/apiv1/tripUsers/${tripId}`
+  const deleteTripDayUrl = `${tripServerHost}/apiv1/deleteTripDay/`
+  const addTripDayUrl = `${tripServerHost}/apiv1/tripDay`
 
   const formatDate = (dateString) => {
     const dateParts = dateString.split('T')[0];

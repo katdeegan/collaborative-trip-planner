@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'; // React Router hook to navigate
 import '../styles/edit-day-styles.css'
 import axios from 'axios'; 
 
-const CreateTrip = ({userId}) => {
+const CreateTrip = ({userServerHost, tripServerHost, userId}) => {
   // States to store form data
   const [tripName, setTripName] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -16,8 +16,8 @@ const CreateTrip = ({userId}) => {
   const navigate = useNavigate();
 
   const createTripAndAddUser = async (tripName, startDate, endDate) => {
-    const createTripUrl = 'http://127.0.0.1:2000/apiv1/trip'; 
-    const addUserUrl = 'http://127.0.0.1:4000/apiv1/tripGroup'; 
+    const createTripUrl = tripServerHost + '/apiv1/trip'; 
+    const addUserUrl = userServerHost + '/apiv1/tripGroup'; 
 
     const tripData = { trip_name: tripName, start_date: startDate, end_date: endDate};  
 
