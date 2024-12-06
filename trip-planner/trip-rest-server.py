@@ -376,34 +376,40 @@ def addDocument(tripId):
     # Get the file from the request
     try:
         app.logger.info(f"getting file from the request...")
-        request_data = request.get_json()
-        filepath = request_data.get('file')
+        #request_data = request.get_json()
+        #filepath = request_data.get('file')
 
-        if not filepath:
-            return jsonify({"error": "No file path provided"}), 400
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file part'}), 400
+    
+        # Get the file from the request
+        file = request.files['file']
+        
+        # If the user does not select a file
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
 
-        app.logger.info(f"Filepath received: {filepath}")
+        #if not filepath:
+            #return jsonify({"error": "No file path provided"}), 400
 
-        # Open the file from the provided filepath
-        with open(filepath, 'rb') as file:
-            # Prepare the blob name
-            filename = filepath.split('/')[-1]  # Extract file name
-            blob_name = f"trip_documents/{tripId}/{filename}"
+        filename = file.filename
 
-            app.logger.info(f"Blob_name: {blob_name}")
+        app.logger.info(f"Filepath received: {filename}")
 
-            # Upload the file to Google Cloud Storage
-            bucket = storage_client.bucket(BUCKET_NAME)
-            blob = bucket.blob(blob_name)
-            blob.upload_from_file(file)
+        blob_name = f"trip_documents/{tripId}/{filename}"
 
-        # success
-        app.logger.info(f"File uploaded to {blob_name} in GCS")
-        return jsonify({"message": "File uploaded successfully", "blob_name": blob_name}), 200
+        app.logger.info(f"Blob_name: {blob_name}")
+
+        bucket = storage_client.bucket(BUCKET_NAME)
+        blob = bucket.blob(blob_name)
+
+        blob.upload_from_file(file)
+
+        file_url = f"gs://{BUCKET_NAME}/{blob_name}"
+        return jsonify({'message': 'File uploaded successfully', 'file_url': file_url}), 200
 
     except Exception as e:
-        app.logger.error(f"Error while uploading file: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
 
