@@ -13,3 +13,13 @@ Once the Redis message is dequeued, the **Email Alerts Service** sends an email 
 
 Check value of environment variable via command:
 ```printenv GOOGLE_APPLICATION_CREDENTIALS```
+
+## Deploying to Kubernetes
+
+To run this service on a pod in a Kubernetes cluster, excute the following terminal command:
+
+```bash
+kubectl apply -f messaging/deployment.yaml
+```
+
+As configured, this command will provision a Kubernetes pod to host the email alerts service (number of pods can be scaled based on application needs).

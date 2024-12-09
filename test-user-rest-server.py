@@ -68,14 +68,16 @@ def testLoginUser(user, password):
     returnResp(response)
 
 def testDeleteUserFromTrip(userId, tripId):
-    delete_trip_user_url = addr + f"/apiv1/deleteTripUser/{userId}/{tripId}"
+    delete_trip_user_url = addr + f"/apiv1/deleteTripDay/{userId}/{tripId}"
     headers = {'content-type': 'application/json'}
     response = requests.delete(delete_trip_user_url, headers=headers)
     returnResp(response)
 
+
+
 if len(sys.argv) < 2:
     print(f"Usage: {sys.argv[0]} <cmd>")
-    print(f"    where <cmd> is one of: getUser, createUser, addToGroup, getGroups, login")
+    print(f"    where <cmd> is one of: getUser, createUser, addToGroup, getGroups, getUsers, login, deleteTripUser")
 else:
 
     cmd = sys.argv[1]

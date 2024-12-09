@@ -96,7 +96,7 @@ def testGetDocs(tripId):
 
 if len(sys.argv) < 2:
     print(f"Usage: {sys.argv[0]} <cmd>")
-    print(f"    where <cmd> is one of: createTrip, updateTrip, getTrip, getTripDays, addDoc")
+    print(f"    where <cmd> is one of: createTrip, updateTrip, getTrip, getTripDays, getTripDay, deleteTripDay, addTripDay, addDoc, getDocs")
 
 else:
 
