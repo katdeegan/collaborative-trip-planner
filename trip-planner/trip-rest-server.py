@@ -4,14 +4,12 @@ from flask import Flask, request, Response, jsonify
 import jsonpickle
 import logging
 from google.cloud.sql.connector import Connector
-import pg8000
 import sqlalchemy
 from sqlalchemy import text
 from datetime import date, datetime
 import datetime
 from google.cloud import storage
 from flask_cors import CORS # for local testing - allow cross-origin requests (when frontend and backend are running on same machine on different ports)
-import os
 from urllib.parse import quote
 
 
@@ -378,8 +376,6 @@ def addDocument(tripId):
     # Get the file from the request
     try:
         app.logger.info(f"getting file from the request...")
-        #request_data = request.get_json()
-        #filepath = request_data.get('file')
 
         if 'file' not in request.files:
             return jsonify({'error': 'No file part'}), 400
@@ -391,8 +387,6 @@ def addDocument(tripId):
         if file.filename == '':
             return jsonify({'error': 'No selected file'}), 400
 
-        #if not filepath:
-            #return jsonify({"error": "No file path provided"}), 400
 
         filename = file.filename
 
