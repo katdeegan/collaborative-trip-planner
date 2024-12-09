@@ -1,8 +1,19 @@
-## Collaborative Trip Planner Service
+# Collaborative Trip Planner Service
 
-### Description
+## Description
 
-### Deployment to Kubernetes
+## Architecture
+
+### Architecture Diagram
+
+![Database Schema Diagram](images/arch-diagram-final.png)
+
+
+### Postgres SQL Database Schema
+
+![Database Schema Diagram](images/database-schema.png)
+
+## Deployment to Kubernetes
 
 The Collaborative Trip Planner is designed to be deployed via Kubernetes. The following sequence of terminal commands can be used to deploy all components as a Kubernetes pods:
 

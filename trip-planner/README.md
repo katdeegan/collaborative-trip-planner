@@ -53,5 +53,5 @@ kubectl apply -f trip-planner/deployment.yaml
 kubectl apply -f trip-planner/service.yaml
 ```
 
-As configured, these commands will configure a Kubernetes pod to host the trip rest server (number of pods can be scaled based on application needs), and a Load Balancer service so that the pod(s) may be access either by service name (from within Kubernetes cluster) or externally (via **EXTERNAL_IP**).
+As configured, these commands will provision a Kubernetes pod to host the trip rest server (number of pods can be scaled based on application needs), and a Load Balancer service so that the pod(s) may be access either by service name (from within Kubernetes cluster) or externally (via **EXTERNAL_IP**).
 
