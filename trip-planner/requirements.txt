@@ -2,3 +2,4 @@ Flask
 jsonpickle
 flask-cors
 sqlalchemy
+redis

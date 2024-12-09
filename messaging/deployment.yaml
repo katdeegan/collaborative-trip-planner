@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: messaging-server
+spec:
+  replicas: 1  
+  selector:
+    matchLabels:
+      app: messaging-server
+  template:
+    metadata:
+      labels:
+        app: messaging-server
+    spec:
+      containers:
+      - name: messaging-server
+        image: gcr.io/trip-planner-442220/trip-planner-messaging:latest 
+        ports:
+        - containerPort: 5000 
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: "/app/db-serv-acc.json"
+

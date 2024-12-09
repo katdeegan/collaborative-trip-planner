@@ -11,6 +11,9 @@ import datetime
 from google.cloud import storage
 from flask_cors import CORS # for local testing - allow cross-origin requests (when frontend and backend are running on same machine on different ports)
 from urllib.parse import quote
+import os
+import redis
+import json
 
 
 app = Flask(__name__)
@@ -47,6 +50,22 @@ pool = sqlalchemy.create_engine(
 with pool.connect() as conn:
     result = conn.execute(text("SELECT 1"))
     print(result.fetchone())
+
+# connect to Redis
+redis_host = os.getenv('REDIS_HOST') or '35.193.96.145'
+
+# Connect to Redis
+r = redis.Redis(host=redis_host, port=6379, db=0)
+
+print(redis_host)
+
+redis_queue = "tripUpdated"
+
+try:
+    r.ping()
+    print("Connected to Redis!")
+except redis.exceptions.ConnectionError:
+    print("Failed to connect to Redis.")
 
 # 1. create new trip
 @app.route('/apiv1/trip', methods=['POST'])
@@ -310,13 +329,9 @@ def updateTrip(tripId, dateString):
 
         trip_date = dateString
         new_trip_date = trip_date
-        '''
-        try:
-            trip_date = datetime.datetime.strptime(dateString, "%m-%d-%Y").date()
-        except ValueError:
-            trip_date = datetime.datetime.strptime(dateString, "%Y-%m-%d").date()
-        '''
-        #formatted_date = trip_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        updated_by_user_id = None
+
         app.logger.info(f"Original Trip Date: {trip_date}")
 
         # TODO - check that date and trip are valid (exist and in range)
@@ -328,6 +343,8 @@ def updateTrip(tripId, dateString):
                 return jsonify({"error": f"Invalid field: {field}"}), 400
             if field == "date":
                 new_trip_date = request_data["date"]
+            if field == "last_updated_by":
+                updated_by_user_id = request_data["last_updated_by"]
             fields_to_update.append(f"{field} = :{field}")
         
         if not fields_to_update:
@@ -357,6 +374,17 @@ def updateTrip(tripId, dateString):
             # Check if the record was updated
             if result.rowcount == 0:
                 return jsonify({"error": "No matching record found"}), 404
+            
+            # add message to redis queue to alert other trip members
+            if updated_by_user_id:
+                redis_message = f"{updated_by_user_id}-{tripId}-{dateString}"
+            else:
+                redis_message = f"None-{tripId}-{dateString}"
+            try:
+                r.rpush(redis_queue, redis_message)
+                app.logger.info(f"Added {redis_message} to redis queue.")
+            except:
+                app.logger.error(f"Error pushing {redis_message} to redis queue.")
 
         # Success response
         response = {'tripID': tripId, 'date': new_trip_date, 'updatedFields': list(request_data.keys())}
@@ -436,6 +464,15 @@ def get_trip_documents(tripId):
 
     except Exception as e:
         return jsonify({"message": str(e)}), 500
+
+# 10. retrieve redis queue
+@app.route('/apiv1/getMessageQueue', methods=['GET'])
+def getRedisQueue():
+    app.logger.info("Retrieving Redis message queue...")
+    data = [ x.decode('utf-8') for x in r.lrange(redis_queue, 0, -1) ]
+
+    # returns them as a JSON response
+    return Response(json.dumps(data), mimetype="application/json")
 
 
 # start flask app

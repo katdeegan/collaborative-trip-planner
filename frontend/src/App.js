@@ -21,7 +21,7 @@ const initialState = {
 
 function App() {
   const userServerHost = 'http://34.45.72.147';
-  const tripServerHost = 'http://34.55.49.144';
+  const tripServerHost = 'http://34.172.225.111';
   const [user, setUser] = useState(initialState.userId);
   const [username, setUsername] = useState(initialState.username);
   const [tripId, setTripId] = useState(initialState.tripId);

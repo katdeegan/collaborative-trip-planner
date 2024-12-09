@@ -45,7 +45,7 @@ def testUpdateTrip(id, date):
     headers = {'content-type': 'application/json'}
 
     # TODO - how to pass do this via user input / frontend / CMD testing vs manually ?
-    data = jsonpickle.encode({"location" : "France", "accommodations" : "Grand Plaza Hotel", "travel" : "bus"})
+    data = jsonpickle.encode({"location" : "France", "accommodations" : "Grand Plaza Hotel", "travel" : "bus", "last_updated_by": 1})
 
     response = requests.patch(update_trip_url, data=data, headers=headers)
     returnResp(response)
