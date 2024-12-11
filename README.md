@@ -1,6 +1,7 @@
 # Collaborative Trip Planner Service
 
 ## Description
+The Collaborative Trip Planner Service is a collection of distributed components that enables users to more easily plan and share travel itineraries. The goal of this project was to create an environment where users within a trip group are able to share and collaborate on travel details including trip dates, locations, accommodations, and expected activities. Functionality includes allowing a user to create a new trip group, allowing this trip group owner to invite other users to the group, accessing and modifying shared trip planning data, and sending email notifications when users in a group update the itinerary.
 
 ## Architecture
 
